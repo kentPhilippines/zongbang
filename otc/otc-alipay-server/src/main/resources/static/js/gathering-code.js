@@ -407,27 +407,27 @@ var gatheringCodeVM = new Vue({
 					icon: 7,
 					time: 3000
 				});
-				return;
-			}
-			if (medium.mediumPhone == null || medium.mediumPhone == '') {
-				layer.alert('请填写关联手机号/邮箱/编号', {
-					title: '提示',
-					icon: 7,
-					time: 3000
-				});
-				return;
-			}
-			if (medium.bankcode == null || medium.bankcode == '') {
-				layer.alert('请选择银行卡类型/出款/入款', {
-					title: '提示',
-					icon: 7,
-					time: 3000
-				});
-				return;
-			}
-			if (medium.account == null || medium.account == '') {
-				layer.alert('请选择银行卡开户行', {
-					title: '提示',
+                return;
+            }
+            if (medium.mediumPhone == null || medium.mediumPhone == '') {
+                layer.alert('请填写关联手机号/邮箱/编号', {
+                    title: '提示',
+                    icon: 7,
+                    time: 3000
+                });
+                return;
+            }
+            /*if (medium.bankcode == null || medium.bankcode == '') {
+                layer.alert('请选择银行卡类型/出款/入款', {
+                    title: '提示',
+                    icon: 7,
+                    time: 3000
+                });
+                return;
+            }*/
+            if (medium.account == null || medium.account == '') {
+                layer.alert('请选择银行卡开户行', {
+                    title: '提示',
 					icon: 7,
 					time: 3000
 				});

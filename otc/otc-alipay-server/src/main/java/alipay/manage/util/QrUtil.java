@@ -46,25 +46,26 @@ public class QrUtil {
 	@Autowired CorrelationService correlationServiceImpl;
 	@Autowired RiskUtil riskUtil;
 	/**
-	 * <p>选码的本地方法</p>
-	 * @param orderNo			订单号
-	 * @param amount			金额
-	 * @param code				选吗CODE值
-	 * @param flag				是否为顶代结算模式  true  是     false   否
-	 * @return
-	 * @throws ParseException
-	 */
-	public FileList findQr(String orderNo, BigDecimal amount, String[] code,boolean flag) throws ParseException {
-		/**
-		 * ######################################## 二维码回调逻辑,以及应该要注意的几个问题
-		 * 1,防止出现同一个二维码在10分钟内同时调用 1>解决：在存入时候 先检查是否有相同二维码在缓存内使用 2,回调订单的唯一标识 1>采取策略：金额+手机号
-		 * 3,当不满足任意条件的情况 1>选取 使用次数最少 2>选取 金额不一样
-		 * 
-		 * List<String> keyS = new ArrayList<String>(); // Map<String,List<String>> map
-		 * = new HashMap<String,List<String>>(); List<QrCode> qrLi = new
-		 * ArrayList<QrCode>(); // qrList = shuffle(qrList); for(QrCode qc: qrList)
-		 * {//两次风控规则 if(isClickQrCode(qc.getQrcodeId())) { keyS.add(qc.getQrcodeId());
-		 * qrLi.add(qc); } }
+     * <p>选码的本地方法</p>
+     *
+     * @param orderNo 订单号
+     * @param amount  金额
+     * @param code    选吗CODE值
+     * @param flag    是否为顶代结算模式  true  是     false   否
+     * @return
+     * @throws ParseException
+     */
+    public FileList findQr(String orderNo, BigDecimal amount, List<String> code, boolean flag) throws ParseException {
+        /**
+         * ######################################## 二维码回调逻辑,以及应该要注意的几个问题
+         * 1,防止出现同一个二维码在10分钟内同时调用 1>解决：在存入时候 先检查是否有相同二维码在缓存内使用 2,回调订单的唯一标识 1>采取策略：金额+手机号
+         * 3,当不满足任意条件的情况 1>选取 使用次数最少 2>选取 金额不一样
+         *
+         * List<String> keyS = new ArrayList<String>(); // Map<String,List<String>> map
+         * = new HashMap<String,List<String>>(); List<QrCode> qrLi = new
+         * ArrayList<QrCode>(); // qrList = shuffle(qrList); for(QrCode qc: qrList)
+         * {//两次风控规则 if(isClickQrCode(qc.getQrcodeId())) { keyS.add(qc.getQrcodeId());
+         * qrLi.add(qc); } }
 		 */
 		// 根据金额获取符合条件的用户
 		List<String> queue = queueServiceClienFeignImpl.getQueue(code);

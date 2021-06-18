@@ -58,7 +58,7 @@ public class PayApiConstant {
 		public static final String ORDER_API = "/order-api";//订单处理接口
 		public static final String WIT_API_ENTER = "/wit-api-enter";//代付确认处理
 		public static final String ORDER_ENTER_ORDER = "/enter-orderQr";//订单状态修改及资金流水账户变动
-        public static final String ORDER_ENTER_ORDER_SYSTEM = "/enter-orderQr-system";//顶动感
+        public static final String ORDER_ENTER_ORDER_SYSTEM = "/enter-orderQr-system";//自动回调确认订单接口
 
 
         public static final String MEDIUM_API = "/medium";                                    //媒介处理公共接口

@@ -69,7 +69,7 @@ public interface MediumMapper {
      * @param code
      * @return
      */
-    List<Medium> findBankByAmountAndAttr(@Param("code") String[] code);
+    List<Medium> findBankByAmountAndAttr(@Param("code") List<String> code);
 
 
     @Update("update alipay_medium set mountNow - #{dealAmount} where mediumNumber = #{bankAccount} ")

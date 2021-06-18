@@ -10,6 +10,7 @@ import otc.result.Result;
 
 /**
  * <p>自己的代付渠道</p>
+ * 卡商代付处理
  *
  * @author hx08
  */
@@ -23,9 +24,16 @@ public class MyQrChannel extends AmountObject {
 	@Override
 	public Result withdraw(Withdraw wit) {
 		Result withrawOrder = orderUtil.withrawOrder(wit.getOrderId(), wit.getRetain2(), false);
-		if (withrawOrder.isSuccess()) {
-			return super.withdraw(wit);
-		}
+
+		/**
+		 *
+		 是否走    卡商出款有待商榷
+		 if (withrawOrder.isSuccess()) {
+		 return super.withdraw(wit);
+		 }
+		 */
+
+
 		// TODO 商户或 码商 代付接口
 
 

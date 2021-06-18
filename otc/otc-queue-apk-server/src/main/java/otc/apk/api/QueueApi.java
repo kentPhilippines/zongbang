@@ -32,17 +32,18 @@ public class QueueApi {
 
 	/**
 	 * <p>获取队列</p>
-	 * @param code				某个订单的队列标识
+	 *
+	 * @param code 某个订单的队列标识
 	 * @return
 	 */
 	@PostMapping(PayApiConstant.Queue.FIND_QR)
-	public List findQr(@RequestBody String[] code) {
-		log.info("【远程调用队列处理方法，参数为："+code+"】");
+	public List findQr(@RequestBody List<String> code) {
+		log.info("【远程调用队列处理方法，参数为：" + code + "】");
 		Set<Object> list = queueList.getList(code);
 		Object[] array = list.toArray();
 		List<String> lists = new ArrayList<String>();
-		for(Object obj  : array) {
-			log.info("【队列值为："+obj+"】");
+		for (Object obj : array) {
+			log.info("【队列值为：" + obj + "】");
 			lists.add(obj.toString());
 		}
 		return lists;

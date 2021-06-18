@@ -123,12 +123,16 @@ public class AmountRunUtil {
      * @param flag         true 自然流水     false  人工流水
      * @return
      */
-    public Result deleteAmount(Withdraw withdraw, String generationIp, Boolean flag) {
-        Result delete = delete(WITHDRAY_AMOUNT, withdraw.getUserId(), withdraw.getOrderId(), withdraw.getActualAmount(), generationIp, "账户代付冻结", flag ? RUNTYPE_ARTIFICIAL : RUNTYPE_NATURAL);
+    public Result deleteAmount(Withdraw withdraw, String generationIp, Boolean flag, String dealDescribe) {
+        Result delete = delete(WITHDRAY_AMOUNT, withdraw.getUserId(), withdraw.getOrderId(), withdraw.getActualAmount(), generationIp, dealDescribe, flag ? RUNTYPE_ARTIFICIAL : RUNTYPE_NATURAL);
         if (delete.isSuccess()) {
             return delete;
         }
         return Result.buildFailMessage("流水生成失败");
+    }
+
+    public Result deleteAmount(Withdraw withdraw, String generationIp, Boolean flag) {
+        return deleteAmount(withdraw, generationIp, flag, "账户代付冻结");
     }
 
     /**
@@ -184,12 +188,16 @@ public class AmountRunUtil {
      * @param flag
      * @return
      */
-    public Result deleteAmountFee(Withdraw withdraw, String generationIp, Boolean flag) {
-        Result delete = delete(WITHDRAY_AMOUNT_FEE, withdraw.getUserId(), withdraw.getOrderId(), withdraw.getFee(), generationIp, "账户代付手续费冻结", flag ? RUNTYPE_ARTIFICIAL : RUNTYPE_NATURAL);
+    public Result deleteAmountFee(Withdraw withdraw, String generationIp, Boolean flag, String dealDescribe) {
+        Result delete = delete(WITHDRAY_AMOUNT_FEE, withdraw.getUserId(), withdraw.getOrderId(), withdraw.getFee(), generationIp, dealDescribe, flag ? RUNTYPE_ARTIFICIAL : RUNTYPE_NATURAL);
         if (delete.isSuccess()) {
             return delete;
         }
         throw new UserException("账户流水异常", null);
+    }
+
+    public Result deleteAmountFee(Withdraw withdraw, String generationIp, Boolean flag) {
+        return deleteAmountFee(withdraw, generationIp, flag, "账户代付手续费冻结");
     }
 
     /**

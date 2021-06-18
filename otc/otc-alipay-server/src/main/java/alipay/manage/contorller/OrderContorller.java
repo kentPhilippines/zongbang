@@ -101,7 +101,15 @@ public class OrderContorller {
 	@ResponseBody
 	@Transactional
 	public Result userConfirmToPaid(HttpServletRequest request,String orderId) {
-		return null; }
+        UserInfo user = sessionUtil.getUser(request);
+        if (ObjectUtil.isNull(user)) {
+            throw new UserException("当前用户未登录", null);
+        }
+        logUtil.addLog(request, "当前卡商置交易订单成功：" + orderId + "，：" + "，操作人：" + user.getUserId(), user.getUserId());
+        Result orderDealSu = orderUtil.orderDealSu(orderId, HttpUtil.getClientIP(request), user.getUserId());
+        return orderDealSu;
+
+    }
 
 	@GetMapping("/findMyReceiveOrderRecordByPage")
 	@ResponseBody

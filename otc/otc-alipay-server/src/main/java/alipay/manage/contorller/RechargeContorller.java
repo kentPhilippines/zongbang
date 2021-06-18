@@ -206,6 +206,9 @@ public class RechargeContorller {
 		map.put(MOBILE, mobile);
 		map.put(MONEY_PWD, moneyPwd);
 		Result clickWithdraw = isClickWithdraw(map);
+		if (!clickWithdraw.isSuccess()) {
+			return clickWithdraw;
+		}
 		String msg = "码商发起提现操作,当前提现参数：开户名：" + accountHolder + "，银行名称：" + bankCard +
 				"，关联码商账号：" + user.getUserId() + "，提现手机号：" + mobile + "，提现金额：" + withdrawAmount + "，提现验证密码：" + clickWithdraw.isSuccess();
 		boolean addLog = logUtil.addLog(request, msg, user.getUserId());
@@ -213,6 +216,7 @@ public class RechargeContorller {
 		if (ObjectUtil.isNull(createWit)) {
 			return Result.buildFailResult("生成提现订单失败，请联系客服人员");
 		}
+		//对账户资金进行扣减
 		Result withdraw = Result.buildFail();
 		try {
 			withdraw = factoryForStrategy.getAmountChannel(MY_WITHDRAW).withdraw(createWit);
@@ -222,7 +226,8 @@ public class RechargeContorller {
 		} catch (Exception e) {
 			return withdraw;
 		}
-		return Result.buildFail();
+
+		return Result.buildSuccessMessage("等待处理");
 	}
    
 	/**
@@ -235,7 +240,7 @@ public class RechargeContorller {
 	   UserInfo userInfo = userInfoServiceImpl.findUserInfoByUserId(userFund.getUserId());
 	   String money_pwd = map.get(MONEY_PWD).toString();
 	   Result password = HashKit.encodePassword(userInfo.getUserId(), money_pwd, userInfo.getSalt());
-	   if (!money_pwd.equals(password.getResult().toString())) {
+	   if (!userInfo.getPayPasword().equals(password.getResult().toString())) {
 		   return Result.buildFailResult("资金密码错误；");
 	   }
 	   BigDecimal balance = userFund.getAccountBalance();
@@ -283,5 +288,4 @@ public class RechargeContorller {
 	   }
 	   return null;
    }
-    
 }

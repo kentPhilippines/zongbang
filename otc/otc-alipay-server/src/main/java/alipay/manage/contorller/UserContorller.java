@@ -59,8 +59,10 @@ public class UserContorller {
 		UserInfo user2 = userInfoServiceImpl.findUserInfoByUserId(user.getUserId());
 		UserFund userFund = userInfoServiceImpl.findUserFundByAccount(user.getUserId());
 		UserRate rateR = userRateService.findUserRateR(user.getUserId());
+		UserRate rateW = userRateService.findUserRateWitByUserIdApp(user2.getUserId());
 		user2.setAmount(userFund.getAccountBalance().toString());
 		user2.setFee(rateR.getFee().toString());
+		user2.setCardFee(rateW.getFee().toString());
 		return Result.buildSuccessResult(user2);
 	}
 
@@ -121,6 +123,7 @@ public class UserContorller {
 		}
 		log.info("【当前添加银行卡用户：" + user.getUserId() + "】");
 		bank.setAccount(user.getUserId());
+		//	boolean issuer = bankListServiceImpl.cleanBankToLast(user.getUserId());
 		boolean flag = bankListServiceImpl.addBankcard(bank);
 		if (flag) {
 			return Result.buildSuccess();

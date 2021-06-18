@@ -267,14 +267,20 @@ public interface UserInfoService {
 	 * @param split
 	 * @return
 	 */
-	List<UserFund> findUserByWeight(String[] split);
+    List<UserFund> findUserByWeight(String[] split);
 
-	boolean updataReceiveOrderStateNO(String userId);
+    boolean updataReceiveOrderStateNO(String userId);
 
-	boolean updataReceiveOrderStateOFF(String userId);
+    boolean updataReceiveOrderStateOFF(String userId);
 
-	boolean updataRemitOrderStateNO(String userId);
+    boolean updataRemitOrderStateNO(String userId);
 
-	boolean updataRemitOrderStateOFF(String userId);
+    boolean updataRemitOrderStateOFF(String userId);
 
+    /**
+     * 查询所有卡商代理
+     *
+     * @return
+     */
+    List<UserInfo> findAgentQr();
 }

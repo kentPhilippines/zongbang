@@ -53,16 +53,24 @@ public class OrderTask {
 	 * 每十秒结算一次
 	 */
 	public void orderTask() {
-		RedisLockUtil.redisLock(KEY + "lock");
-		List<DealOrder> orderList = dealOrderDao.findSuccessAndNotAmount();
-		for (DealOrder order : orderList) {
-			if (redis.hasKey(KEY + order.getOrderId())) {
-				log.info("当前订单已处理");
-				continue;
-			}
-			;
-			redis.set(KEY + order.getOrderId(), order.getOrderId(), 2000); //防止多个任务同时获取一个订单发起结算
-			try {
+        ThreadUtil.execute(() -> {
+            /*
+             * 主动修改10分钟未确认的单子为 未收到回调状态
+             *  商户充值订单
+             * 	卡商充值订单
+             */
+            int a = dealOrderDao.updateUnNotify();
+        });
+        RedisLockUtil.redisLock(KEY + "lock");
+        List<DealOrder> orderList = dealOrderDao.findSuccessAndNotAmount();
+        for (DealOrder order : orderList) {
+            if (redis.hasKey(KEY + order.getOrderId())) {
+                log.info("当前订单已处理");
+                continue;
+            }
+            ;
+            redis.set(KEY + order.getOrderId(), order.getOrderId(), 2000); //防止多个任务同时获取一个订单发起结算
+            try {
 				List<RunOrder> runOrderList = RunOrderServiceimpl.findAssOrder(order.getOrderId());
 				List<RunOrder> runOrderList1 = new ArrayList<>();
 				if (!order.getAssociatedId().contains("W")) {

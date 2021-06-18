@@ -44,10 +44,10 @@
 						 </div> 
 						 <input type="password" style="	border: 0;outline: none;border-bottom: 1px solid #35a79c;" class="form-control" placeholder="请输入密码" v-model="password">
 					</div>
-<!-- 					<div class="form-group"> -->
-<!-- 						<label>验证码</label> <input type="text" class="form-control" placeholder="请输入google验证码" v-model="googleCode"> -->
-<!-- 					</div> -->
-					<button type="button" class="btn btn-info btn-lg btn-block login-btn"  v-on:click="login">立即登录</button>
+                    -                    <!--<div class="form-group">
+  						<label>验证码</label> <input type="text" class="form-control" placeholder="请输入google验证码" v-model="googleCode">
+ 				</div>-->
+                    <button type="button" class="btn btn-info btn-lg btn-block login-btn"  v-on:click="login">立即登录</button>
 					<button type="button" class="btn btn-light btn-lg btn-block" v-show="registerEnabled" v-on:click="footerVM.goTo('/register')">注册</button>
 				</form>
 			</div>
@@ -72,11 +72,11 @@
 		var loginVM = new Vue({
 			el : '#login',
 			data : {
-				registerEnabled : false,
-				userName : '',
-				password : ''
-// 				googleCode: ''
-			},
+                registerEnabled: false,
+                userName: '',
+                password: '',
+                googleCode: ''
+            },
 			computed : {},
 			created : function() {
 			},
@@ -92,34 +92,37 @@
 					});
 				},
 				login : function() {
-					var that = this;
-					if (that.userName == null || that.userName == '') {
-						layer.msg('请输入用户名');
-						return;
-					}
-					if (that.password == null || that.password == '') {
-						layer.msg('请输入密码');
-						return;
-					}
-					that.$http.post('/login', {
-						username : that.userName,
-						password : that.password
-// 						googleCode : that.googleCode
-					}, {
-						emulateJSON : true
-					}).then(function(res) {
-						if(res.body.success){
-							window.location.href = '/';
-						}else{
-// 							if(!res.body.success && res.body.code == 1){
-// 								console.log(res.body);
-// 								window.location.href = '/google?username='+res.body.message;
-// 							}
-// 							else{
-// 								layer.alert(res.body.message);
-// 							}
-							layer.msg(res.body.message);
-						}
+                    var that = this;
+                    if (that.userName == null || that.userName == '') {
+                        layer.msg('请输入用户名');
+                        return;
+                    }
+                    if (that.password == null || that.password == '') {
+                        layer.msg('请输入密码');
+                        return;
+                    }
+                    /*	if (that.googleCode == null || that.googleCode == '') {
+                            layer.msg('请输入密码');
+                            return;
+                        }*/
+                    that.$http.post('/login', {
+                        username: that.userName,
+                        password: that.password
+                        //	googleCode : that.googleCode
+                    }, {
+                        emulateJSON: true
+                    }).then(function (res) {
+                        if (res.body.success) {
+                            window.location.href = '/';
+                        } else {
+                            if (!res.body.success && res.body.code == 1) {
+                                console.log(res.body);
+                                window.location.href = '/google?username=' + res.body.message;
+                            } else {
+                                layer.alert(res.body.message);
+                            }
+                            layer.msg(res.body.message);
+                        }
 					});
 				}
 			}

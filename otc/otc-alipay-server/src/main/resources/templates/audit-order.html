@@ -72,8 +72,8 @@
 				<label>状态:</label> <select class="form-control" v-model="orderStatus">
 				<option value="1">处理中</option>
 				<option value="2">成功</option>
-				<option value="3">失败</option>
-				<option value="4">未确认订单</option>
+				<option value="3">未确认订单</option>
+				<option value="4">失败订单</option>
 			</select>
 				<div class="input-group-append">
 					<button class="btn btn-outline-secondary" type="button" v-on:click="loadPlatformOrder()">查询</button>
@@ -124,10 +124,25 @@
 						</div>
 						<div class="platform-order-body-item" v-show="order.orderType == 4 ">
 							<button class="btn btn-outline-info btn-lg" type="button"
-									v-on:click="enterOrder(order.orderId,order.orderQr)"
+									v-on:click="enterOrder(order.orderId,order.orderQr &&  ( order.orderQr == null || order.orderQr == ''))"
 									v-show="order.orderStatus == 1">查看出款详情
 							</button>
+							<button class="btn btn-outline-info btn-lg"
+									type="button"
+									v-on:click="confirmToPaid(order.orderId)"
+									v-show="order.orderStatus == 1 &&  ( order.orderQr != null  && order.orderQr != '')">
+								确认已支付
+							</button>
 						</div>
+						<div class="platform-order-body-item" v-show="order.orderType == 3 || order.orderType == 1">
+							<button class="btn btn-outline-info btn-lg"
+									type="button"
+									v-on:click="confirmToPaid(order.orderId)"
+									v-show="order.orderStatus == 1">确认已支付
+							</button>
+						</div>
+
+
 						<div class="platform-order-body-item">
 							<!-- <button class="btn btn-outline-danger btn-lg" type="button" v-on:click="showAppealPage(order)">申诉</button> -->
 						</div>

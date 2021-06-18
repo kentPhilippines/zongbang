@@ -123,7 +123,7 @@ public class CreateOrder {
             queueCode = accountInfo.getQueueList().split(",");//队列供应标识数组
         }
         String bc = GenerateOrderNo.Generate("BA");
-        Medium qr = queue.findQr(bc, dealApp.getOrderAmount(), queueCode, false);//当前接口限制 收款回调，接单限制，接单评率等数据
+        Medium qr = queue.findQr(bc, dealApp.getOrderAmount(), Arrays.asList(queueCode), false);//当前接口限制 收款回调，接单限制，接单评率等数据
         if (null == qr) {
             return Result.buildFailMessage("暂无对应银行卡");
         }
@@ -161,7 +161,7 @@ public class CreateOrder {
             queueCode = accountInfo.getQueueList().split(",");//队列供应标识数组
         }
         String bc = GenerateOrderNo.Generate("RE");
-        Medium qr = queue.findQr(bc, recharge.getAmount(), queueCode, false);//当前接口限制 收款回调，接单限制，接单评率等数据
+        Medium qr = queue.findQr(bc, recharge.getAmount(), Arrays.asList(queueCode), false);//当前接口限制 收款回调，接单限制，接单评率等数据
         if (null == qr) {
             return Result.buildFailMessage("暂无收款渠道");
         }

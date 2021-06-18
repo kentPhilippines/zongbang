@@ -15,9 +15,9 @@ public class Task {
 	@Autowired HeartUtil heartUtil;
 	@RequestMapping(PayApiConstant.Queue.QUEUE_API+PayApiConstant.Queue.TASK_MEDIUM)
 	public void task() {
-		log.info("【执行更新队列操作】");
-		heartUtil.clickHeart();
-	}
+        log.info("【执行更新队列操作】");
+        //	heartUtil.clickHeart();
+    }
 	
 
 }

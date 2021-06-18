@@ -144,4 +144,13 @@ public interface DealOrderMapper {
      */
     @Update(" update alipay_deal_order set retain4 = 0  where orderId = #{orderId}")
     void updateSuccessAndAmount(@Param("orderId") String orderId);
+
+
+    /**
+     * 修改10分钟之前的订单为，未收到回调， 订单类型为    卡商收款,(卡商收款为   商户充值    卡商充值 )
+     *
+     * @return
+     */
+    @Update("update alipay_deal_order set orderStatus = 3 where ( orderType = 1 or orderType = 3  ) and orderStatus = 1  and  createTime <= CURRENT_TIMESTAMP - INTERVAL 10 MINUTE ")
+    int updateUnNotify();
 }

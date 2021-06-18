@@ -1,4 +1,4 @@
 spring:
   profiles:
-    active: druid
-    #active: online
+    #active: druid
+    active: online

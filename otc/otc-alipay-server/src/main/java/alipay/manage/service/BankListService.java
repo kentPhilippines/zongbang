@@ -22,13 +22,22 @@ public interface BankListService {
 	 */
 	boolean addBankcard(BankList bank);
 
-	BankList findBankByNo(String bankNo);
+    BankList findBankByNo(String bankNo);
 
-	/**
-	 * 根据系统账户id查询绑定卡号
-	 *
-	 * @param usdtPay
-	 * @return
-	 */
-	List<BankList> findBankByAccount(String usdtPay);
+    /**
+     * 根据系统账户id查询绑定卡号
+     *
+     * @param usdtPay
+     * @return
+     */
+    List<BankList> findBankByAccount(String usdtPay);
+
+
+    /**
+     * 删除之前绑定的卡商银行卡
+     *
+     * @param userId
+     * @return
+     */
+    boolean cleanBankToLast(String userId);
 }

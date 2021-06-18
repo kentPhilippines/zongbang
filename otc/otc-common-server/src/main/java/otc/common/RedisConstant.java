@@ -13,14 +13,17 @@ public class RedisConstant {
 	}
 
 	/**
-	 * <p>关于队列操作Redis缓存的键【缓存分区】</p>
-	 */
-	public class Queue {
-		public final static String QUEUE_REDIS = "QUEUE:REDIS:";
-		public static final String HEARTBEAT="HEARTBEAT_";
-		public static final String MEDIUM_QUEUE = "MEDIUM:QUEUE";
-		public static final String MEDIUM_HASH = "MEDIUM:HASH:";
-	}
+     * <p>关于队列操作Redis缓存的键【缓存分区】</p>
+     */
+    public class Queue {
+        public final static String QUEUE_REDIS = "QUEUE:REDIS:";
+        public static final String HEARTBEAT = "HEARTBEAT_";
+        public static final String MEDIUM_QUEUE = "MEDIUM:QUEUE";
+        public static final String MEDIUM_HASH = "MEDIUM:HASH:";
+
+
+        public static final String QUEUE_CLECK = "QUEUE:CLECK:";
+    }
 
 	/**
 	 * <p>关于用户操作的redis缓存的键【缓存区分】</p>

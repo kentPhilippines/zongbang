@@ -17,52 +17,70 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+
+/**
+ * redis:
+ * port: 6379
+ * host: 10.14.180.68
+ * timeout : 500
+ * pool :
+ * max-idle : 8
+ * min-idle : 0
+ * max-active : 8
+ * max-wait : -1
+ * session:
+ * store-type: redis
+ * timeout: 7200s
+ *
+ * @author ADMIN
+ */
 @Configuration
 @EnableCaching
-public class RedisConfig  extends CachingConfigurerSupport {
+public class RedisConfig extends CachingConfigurerSupport {
 	Logger log = LoggerFactory.getLogger(RedisConfig.class);
-    @Value("${spring.redis.host}")
-    private String host;
+	@Value("${spring.redis.host}")
+	private String host;
 
-    @Value("${spring.redis.port}")
-    private int port;
+	@Value("${spring.redis.port}")
+	private int port;
 
-    @Value("${spring.redis.timeout}")
-    private int timeout;
+	@Value("${spring.redis.timeout}")
+	private int timeout;
+	@Value("${spring.redis.pool.max-idle}")
+	private int maxIdle;
+	@Value("${spring.redis.password}")
+	private String pasword;
+	@Value("${spring.redis.pool.max-wait}")
+	private long maxWaitMillis;
 
-    @Value("${spring.redis.pool.max-idle}")
-    private int maxIdle;
+	@Bean
+	public JedisPool redisPoolFactory() {
+		log.debug("JedisPool注入成功！！");
+		log.debug("redis地址：" + host + ":" + port);
+		JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+		jedisPoolConfig.setMaxIdle(maxIdle);
+		jedisPoolConfig.setMaxWaitMillis(maxWaitMillis);
+		JedisPool jedisPool = new JedisPool(jedisPoolConfig, host, port, timeout, pasword, 5);
+		return jedisPool;
+	}
 
-    @Value("${spring.redis.pool.max-wait}")
-    private long maxWaitMillis;
-    @Bean
-    public JedisPool redisPoolFactory() {
-    	log.debug("JedisPool注入成功！！");
-    	log.debug("redis地址：" + host + ":" + port);
-        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxIdle(maxIdle);
-        jedisPoolConfig.setMaxWaitMillis(maxWaitMillis);
-        JedisPool jedisPool = new JedisPool(jedisPoolConfig, host, port, timeout);
-        return jedisPool;
-    }
-    
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-    			log.debug("redisTemplate注入成功！！");
-    	      RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
-    	      template.setConnectionFactory(factory);
-    	      Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-    	      ObjectMapper om = new ObjectMapper();
-    	      om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-    	      jackson2JsonRedisSerializer.setObjectMapper(om);
-    	      StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
-    	      template.setKeySerializer(stringRedisSerializer);
-    	      template.setHashKeySerializer(stringRedisSerializer);
-    	      template.setValueSerializer(jackson2JsonRedisSerializer);
-    	      template.setHashValueSerializer(jackson2JsonRedisSerializer);
-    	      template.afterPropertiesSet();
-    	      return template;
-    	  }
+	@Bean
+	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+		log.debug("redisTemplate注入成功！！");
+		RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+		template.setConnectionFactory(factory);
+		Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+		ObjectMapper om = new ObjectMapper();
+		om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+		jackson2JsonRedisSerializer.setObjectMapper(om);
+		StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+		template.setKeySerializer(stringRedisSerializer);
+		template.setHashKeySerializer(stringRedisSerializer);
+		template.setValueSerializer(jackson2JsonRedisSerializer);
+		template.setHashValueSerializer(jackson2JsonRedisSerializer);
+		template.afterPropertiesSet();
+		return template;
+	}
 
 	@Bean
 	@Override
@@ -80,6 +98,8 @@ public class RedisConfig  extends CachingConfigurerSupport {
 			return rsToUse;
 		};
 	}
+
+
 	@Override
 	@Bean
 	public CacheErrorHandler errorHandler() {
@@ -90,14 +110,17 @@ public class RedisConfig  extends CachingConfigurerSupport {
 			public void handleCacheGetError(RuntimeException e, Cache cache, Object key) {
 				log.error("Redis occur handleCacheGetError：key -> [{}]", key, e);
 			}
+
 			@Override
 			public void handleCachePutError(RuntimeException e, Cache cache, Object key, Object value) {
 				log.error("Redis occur handleCachePutError：key -> [{}]；value -> [{}]", key, value, e);
 			}
+
 			@Override
 			public void handleCacheEvictError(RuntimeException e, Cache cache, Object key) {
 				log.error("Redis occur handleCacheEvictError：key -> [{}]", key, e);
 			}
+
 			@Override
 			public void handleCacheClearError(RuntimeException e, Cache cache) {
 				log.error("Redis occur handleCacheClearError：", e);
@@ -106,3 +129,4 @@ public class RedisConfig  extends CachingConfigurerSupport {
 		return cacheErrorHandler;
 	}
 }
+

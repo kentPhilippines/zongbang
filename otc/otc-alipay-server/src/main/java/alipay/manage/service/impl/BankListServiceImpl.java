@@ -19,14 +19,16 @@ public class BankListServiceImpl implements BankListService {
 
 	@Override
 	public List<BankList> findBankCardByQr(String userId) {
-		BankListExample example = new BankListExample();
-		BankListExample.Criteria criteria = example.createCriteria();
-		if (StrUtil.isBlank(userId)) {
-			criteria.andAccountEqualTo(userId);
-		}
-		List<BankList> selectByExample = bankListMapper.selectByExample(example);
-		return selectByExample;
-	}
+        BankListExample example = new BankListExample();
+        BankListExample.Criteria criteria = example.createCriteria();
+        if (StrUtil.isNotBlank(userId)) {
+            criteria.andAccountEqualTo(userId);
+        }
+        criteria.andStatusEqualTo(Common.STATUS_IS_OK);
+        criteria.andIsDealEqualTo(Integer.valueOf(Common.isOk));
+        List<BankList> selectByExample = bankListMapper.selectByExample(example);
+        return selectByExample;
+    }
 
 
 
@@ -57,5 +59,17 @@ public class BankListServiceImpl implements BankListService {
     @Override
     public List<BankList> findBankByAccount(String usdtPay) {
         return bankListMapper.findBankByAccount(usdtPay);
+    }
+
+
+    /**
+     * 清除与当前账户相关的提现银行卡数据
+     *
+     * @param userId
+     * @return
+     */
+    @Override
+    public boolean cleanBankToLast(String userId) {
+        return bankListMapper.cleanBankToLast(userId);
     }
 }

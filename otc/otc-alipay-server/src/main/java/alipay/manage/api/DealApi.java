@@ -96,8 +96,9 @@ public class DealApi extends NotfiyChannel {
 		order.setOrderAccount(orderApp.getOrderAccount());
 		order.setNotify(orderApp.getNotify());
 		FileList findQr = null;
+
 		try {
-			findQr = qrUtil.findQr(orderApp.getOrderId(), orderApp.getOrderAmount(), split, true);
+			findQr = qrUtil.findQr(orderApp.getOrderId(), orderApp.getOrderAmount(), Arrays.asList(split), true);
 		} catch (ParseException e) {
 			log.info("【选码出现异常】");
 		}

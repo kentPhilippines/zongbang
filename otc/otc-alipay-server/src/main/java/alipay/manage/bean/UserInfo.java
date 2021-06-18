@@ -49,9 +49,18 @@ public class UserInfo implements Serializable{
     private String qrRechargeList;//卡商匹配标识
     private String dealUrl;//代付URl
     private String fee;
+    private String cardFee;
     private Integer autoWit;//0:手动代付;1:自动代付
     private Integer enterWitOpen;//0:关闭;1:开启
 
+
+    public String getCardFee() {
+        return cardFee;
+    }
+
+    public void setCardFee(String cardFee) {
+        this.cardFee = cardFee;
+    }
 
     private String interFace;  //反查地址
 

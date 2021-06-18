@@ -61,26 +61,26 @@ public class BankUtil {
 	private MediumService mediumService;
 
 	/**
-	 * <p>选码的本地方法</p>
-	 *
-	 * @param orderNo 订单号
-	 * @param amount  金额
-	 * @param code    选吗CODE值
-	 * @param flag    是否为顶代结算模式  true  是     false   否
-	 * @return
-	 * @throws ParseException
-	 */
-	public Medium findQr(String orderNo, BigDecimal amount, String[] code, boolean flag) {
-		/**
-		 * ######################################## 二维码回调逻辑,以及应该要注意的几个问题
-		 * 1,防止出现同一个二维码在10分钟内同时调用 1>解决：在存入时候 先检查是否有相同二维码在缓存内使用 2,回调订单的唯一标识 1>采取策略：金额+手机号
-		 * 3,当不满足任意条件的情况 1>选取 使用次数最少 2>选取 金额不一样
-		 *
-		 * List<String> keyS = new ArrayList<String>(); // Map<String,List<String>> map
-		 * = new HashMap<String,List<String>>(); List<QrCode> qrLi = new
-		 * ArrayList<QrCode>(); // qrList = shuffle(qrList); for(QrCode qc: qrList)
-		 * {//两次风控规则 if(isClickQrCode(qc.getQrcodeId())) { keyS.add(qc.getQrcodeId());
-		 * qrLi.add(qc); } }
+     * <p>选码的本地方法</p>
+     *
+     * @param orderNo 订单号
+     * @param amount  金额
+     * @param code    选吗CODE值
+     * @param flag    是否为顶代结算模式  true  是     false   否
+     * @return
+     * @throws ParseException
+     */
+    public Medium findQr(String orderNo, BigDecimal amount, List<String> code, boolean flag) {
+        /**
+         * ######################################## 二维码回调逻辑,以及应该要注意的几个问题
+         * 1,防止出现同一个二维码在10分钟内同时调用 1>解决：在存入时候 先检查是否有相同二维码在缓存内使用 2,回调订单的唯一标识 1>采取策略：金额+手机号
+         * 3,当不满足任意条件的情况 1>选取 使用次数最少 2>选取 金额不一样
+         *
+         * List<String> keyS = new ArrayList<String>(); // Map<String,List<String>> map
+         * = new HashMap<String,List<String>>(); List<QrCode> qrLi = new
+         * ArrayList<QrCode>(); // qrList = shuffle(qrList); for(QrCode qc: qrList)
+         * {//两次风控规则 if(isClickQrCode(qc.getQrcodeId())) { keyS.add(qc.getQrcodeId());
+         * qrLi.add(qc); } }
 		 */
 		// 根据金额获取符合条件的用户
 		List<String> queue = queueServiceClienFeignImpl.getQueue(code);
@@ -103,27 +103,27 @@ public class BankUtil {
 				continue;
 			}
 			Medium qr = qrCollect.get(alipayAccount);// 所属
-			if (ObjectUtil.isNull(qr)) {
-				continue;
-			}
-			log.info("【银行卡数据：" + qr.toString() + "】");
-			UserFund qrcodeUser = usercollect.get(qr.getQrcodeId());// 所属
-			if (ObjectUtil.isNull(qrcodeUser)) {
-				continue;
-			}
-			log.info("【账户数据：" + qrcodeUser.toString() + "】");
-			riskUtil.updataUserAmountRedis(qrcodeUser, flag);
-			Object object2 = redisUtil.get(qr.getNotfiyMask() + amount.toString());
-			//	Object object = redisUtil.get(qr.getPhone());
-			boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
-			if (ObjectUtil.isNull(object2) && clickAmount) {
-				redisUtil.set(qr.getNotfiyMask() + amount.toString(), orderNo, Integer.valueOf(configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString())); // 核心回调数据
-				//	redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
-				redisUtil.hset(qr.getQrcodeId(), qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE),
-						amount.toString());
-				// 该风控规则 后期有需求在加    当前媒介 如果超过  X 次未支付， 则对 当前媒介进行锁定			redisUtil.hset(qr.getFileId(), qr.getFileId() + orderNo, orderNo, Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_IS_CLICK).getResult().toString()));
-				queueServiceClienFeignImpl.updataNodebank(qr.getMediumNumber(), qr);
-				log.info("【获取二维码数据：" + qr.toString() + "】");
+            if (ObjectUtil.isNull(qr)) {
+                continue;
+            }
+            log.info("【银行卡数据：" + qr.toString() + "】");
+            UserFund qrcodeUser = usercollect.get(qr.getQrcodeId());// 所属
+            if (ObjectUtil.isNull(qrcodeUser)) {
+                continue;
+            }
+            log.info("【账户数据：" + qrcodeUser.toString() + "】");
+            riskUtil.updataUserAmountRedis(qrcodeUser, flag);
+            Object object2 = redisUtil.get(qr.getMediumPhone() + amount.toString());
+            //	Object object = redisUtil.get(qr.getPhone());
+            boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
+            if (ObjectUtil.isNull(object2) && clickAmount) {
+                redisUtil.set(qr.getMediumPhone() + amount.toString(), orderNo, Integer.valueOf(configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString())); // 核心回调数据
+                //	redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
+                redisUtil.hset(qr.getQrcodeId(), qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE),
+                        amount.toString());
+                // 该风控规则 后期有需求在加    当前媒介 如果超过  X 次未支付， 则对 当前媒介进行锁定			redisUtil.hset(qr.getFileId(), qr.getFileId() + orderNo, orderNo, Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_IS_CLICK).getResult().toString()));
+                queueServiceClienFeignImpl.updataNodebank(qr.getMediumNumber(), qr);
+                log.info("【获取二维码数据：" + qr.toString() + "】");
 				return qr;
 			}
 		}
@@ -138,14 +138,22 @@ public class BankUtil {
 	 * @return
 	 */
 	public String findOrderBy(BigDecimal amount, String phone) {
-		log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "】");
-		Object object = redisUtil.get(phone + amount.toString());
-		if (ObjectUtil.isNull(object)) {
-			return null;
-		}
-		redisUtil.deleteKey(phone + amount.toString());
-		/**
-		 * <p>
+        log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "】");
+        Object object = redisUtil.get(phone + amount.toString());
+        if (ObjectUtil.isNull(object)) {
+            return null;
+        }
+
+        /**
+         * 当前数据是否删除有待商榷
+         * 如果放开这个数据可能会造成保存支付的问题， 当前数据标记最大话的减少 不按照规定 支付出错的问题
+         */
+
+        redisUtil.deleteKey(phone + amount.toString());
+
+
+        /**
+         * <p>
 		 * 对IP解禁
 		 * </p>
 		 * Object IP = redisUtil.get(object.toString()); Set<Object> sGet =

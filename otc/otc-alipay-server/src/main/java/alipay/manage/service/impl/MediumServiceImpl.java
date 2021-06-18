@@ -225,10 +225,10 @@ public class MediumServiceImpl implements MediumService {
     }
 
     @Override
-    public List<Medium> findBankByAmount(BigDecimal amount, String[] code) {
+    public List<Medium> findBankByAmount(BigDecimal amount, List<String> code) {
         List<Medium> medList = new ArrayList<>();
 
-        if (null == code || code.length == 0) {
+        if (null == code || code.size() == 0) {
             return mediumDao.findBankByAmount(amount);
         } else {
 

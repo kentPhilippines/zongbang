@@ -268,6 +268,7 @@ public class WitPay extends PayOrderService {
                         } catch (Exception e) {
                             push("当前订单推送异常，请及时检查异常情况，当前订单号：" + order.getOrderId() + "，当前程序堆栈数据：" + printStackTrace(e.getStackTrace()));
                             //  return Result.buildFailMessage("推送异常");
+                            log.error("代付异常", e);
                         }
                     });
                     ThreadUtil.execute(() -> {

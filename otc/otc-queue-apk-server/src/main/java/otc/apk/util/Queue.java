@@ -35,6 +35,7 @@ public class Queue {
     RedisUtil redisUtil;
     private static final String DATA_QUEUE_HASH = RedisConstant.Queue.MEDIUM_HASH;
     private static final String REDISKEY_QUEUE = RedisConstant.Queue.QUEUE_REDIS;
+    private static final String REDISKEY_QUEUE_CLECK = RedisConstant.Queue.QUEUE_CLECK;
 
     private static boolean checkNotNull(Object v) {
         if (v == null || "" == v) {
@@ -43,18 +44,19 @@ public class Queue {
         return true;
     }
 
-    public Set<Object> getList(String[] codes) {
-        if (codes.length == 0) {
+    public Set<Object> getList(List<String> codes) {
+        if (codes.size() == 0) {
             if (!redisUtil.hasKey(REDISKEY_QUEUE)) {  //当无 队列标识时   初始化所有当前媒介
                 List<Medium> findIsDealMedium = alipayServiceClienFeignImpl.findIsDealMedium(Common.Medium.MEDIUM_BANK);
                 log.info("findIsDealMedium 获取的值是：" + findIsDealMedium);
-                for (Medium medium : findIsDealMedium) {
-                    boolean addNode = addNode(medium.getMediumNumber(), "");
-                    if (addNode) {
-                        String md5 = RSAUtils.md5(DATA_QUEUE_HASH + medium.getMediumNumber());
-                        redisUtil.hset(DATA_QUEUE_HASH, md5, medium, 259200);//本地收款媒介缓存数据会缓存三天
+                if (CollUtil.isNotEmpty(findIsDealMedium)) {
+                    for (Medium medium : findIsDealMedium) {
+                        boolean addNode = addNode(medium.getMediumNumber(), "");
+                        if (addNode) {
+                            String md5 = RSAUtils.md5(DATA_QUEUE_HASH + medium.getMediumNumber());
+                            redisUtil.hset(DATA_QUEUE_HASH, md5, medium, 259200);//本地收款媒介缓存数据会缓存三天
+                        }
                     }
-
                 }
             }
             return redisUtil.zRange(REDISKEY_QUEUE, 0, -1);
@@ -68,11 +70,13 @@ public class Queue {
             if (!redisUtil.hasKey(REDISKEY_QUEUE + code)) {  //如果当前队列标识不存在  则 初始化当前队列标识
                 List<Medium> findIsDealMedium = alipayServiceClienFeignImpl.findIsDealMedium(Common.Medium.MEDIUM_BANK, code);
                 log.info("findIsDealMedium 获取的值是：" + findIsDealMedium);
-                for (Medium medium : findIsDealMedium) {
-                    boolean addNode = addNode(medium.getMediumNumber(), code);
-                    if (addNode) {
-                        String md5 = RSAUtils.md5(DATA_QUEUE_HASH + medium.getMediumNumber());
-                        redisUtil.hset(DATA_QUEUE_HASH, md5, medium, 259200);//本地收款媒介缓存数据会缓存三天
+                if (CollUtil.isNotEmpty(findIsDealMedium)) {
+                    for (Medium medium : findIsDealMedium) {
+                        boolean addNode = addNode(medium.getMediumNumber(), code);
+                        if (addNode) {
+                            String md5 = RSAUtils.md5(DATA_QUEUE_HASH + medium.getMediumNumber());
+                            redisUtil.hset(DATA_QUEUE_HASH, md5, medium, 259200);//本地收款媒介缓存数据会缓存三天
+                        }
                     }
                 }
             }
@@ -116,8 +120,15 @@ public class Queue {
      * @return
      */
     public boolean deleteNode(Object alipayAccount, String code) {
+        log.info("【删除队列操作：" + alipayAccount + "，code ： " + code + "】");
         redisUtil.del(alipayAccount.toString() + RedisConstant.User.QUEUEQRNODE);
-        return redisUtil.zRemove(REDISKEY_QUEUE+code, alipayAccount) > 0;
+        boolean a = redisUtil.zRemove(REDISKEY_QUEUE + code, alipayAccount) > 0;
+        if (a) {
+            log.info("剔除元素成功，队列元素：" + alipayAccount + ",code：" + code);
+        } else {
+            log.info("剔除元素[失败]，队列元素：" + alipayAccount + ",code：" + code);
+        }
+        return a;
     }
 
     /**
@@ -186,13 +197,22 @@ public class Queue {
      * @return
      */
     public boolean addNode(Object alipayAccount, FileList qr,String code) {
-        log.info("【当前元素入列操作，元素标签："+alipayAccount+ "，添加元素code："+code+"】");
+        log.info("【当前元素入列操作，元素标签：" + alipayAccount + "，添加元素code：" + code + "】");
         if (!checkNotNull(alipayAccount)) {
             return false;
         }
-        LinkedHashSet<TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(REDISKEY_QUEUE + code, 0, -1);//linkedhashset 保证set集合查询最快
+        String queueKey = REDISKEY_QUEUE + code;
+        redisUtil.sSet(REDISKEY_QUEUE_CLECK, queueKey);
+        log.info("添加队列key = " + queueKey);
+        String onlineLocationKey = alipayAccount.toString() + RedisConstant.User.QUEUEQRNODE;
+        log.info("是否在线key = " + onlineLocationKey);
+
+        LinkedHashSet<TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(queueKey, 0, -1);//linkedhashset 保证set集合查询最快
         if (CollUtil.isEmpty(zRangeWithScores)) {
-            Boolean zAdd = redisUtil.zAdd(REDISKEY_QUEUE + code, alipayAccount.toString(), 10);
+            Boolean zAdd = redisUtil.zAdd(queueKey, alipayAccount.toString(), 10);
+            if (zAdd) {
+                redisUtil.set(onlineLocationKey, System.currentTimeMillis());
+            }
             return zAdd;
         }
         Optional<TypedTuple<Object>> reduce = zRangeWithScores.stream().reduce((first, second) -> second);
@@ -217,8 +237,8 @@ public class Queue {
                 score -= 0.1;
             }
         }
-        Boolean zAdd = redisUtil.zAdd(REDISKEY_QUEUE + code, alipayAccount.toString(), score);
-        redisUtil.set(alipayAccount.toString() + RedisConstant.User.QUEUEQRNODE, System.currentTimeMillis());
+        Boolean zAdd = redisUtil.zAdd(queueKey, alipayAccount.toString(), score);
+        redisUtil.set(onlineLocationKey, System.currentTimeMillis());
         return zAdd;
     }
 

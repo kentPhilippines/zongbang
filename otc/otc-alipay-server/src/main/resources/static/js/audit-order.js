@@ -139,20 +139,20 @@ var auditOrderVM = new Vue({
 			});
 		},
 		confirmToPaid : function(orderId) {
-			var that = this;
-			layer.msg('确认收到款项？', {
-				  	time: 0 //不自动关闭
-				  ,btn: ['已收到', '点错了']
-				  ,yes: function(index){
-					  that.$http.get('/order/userConfirmToPaid', {
-							params : {
-								orderId : orderId
-							}
-						}).then(function(res) {
-							if(res.body.success){
-								layer.alert('操作成功', {
-									icon : 1,
-									time : 2000,
+            var that = this;
+            layer.msg('确认订单成功？', {
+                time: 0 //不自动关闭
+                , btn: ['已成功', '点错了']
+                , yes: function (index) {
+                    that.$http.get('/order/userConfirmToPaid', {
+                        params: {
+                            orderId: orderId
+                        }
+                    }).then(function (res) {
+                        if (res.body.success) {
+                            layer.alert('操作成功', {
+                                icon: 1,
+                                time: 2000,
 									shade : false
 								});
 								that.loadPlatformOrder();

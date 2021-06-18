@@ -11,10 +11,10 @@ import java.util.List;
 public class QueueServiceClienFeignHystrix implements QueueServiceClienFeign {
 
 	@Override
-	public List<String> getQueue(String[] code) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public List<String> getQueue(List<String> code) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 	@Override
 	public void updataNode(String mediumNumber, FileList file) {
@@ -30,9 +30,8 @@ public class QueueServiceClienFeignHystrix implements QueueServiceClienFeign {
 
 	@Override
 	public Result deleteNode(Medium medium) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        return Result.buildFailMessage("远程调用异常");
+    }
 
 	@Override
 	public void updataNodebank(String mediumNumber, Medium medium) {

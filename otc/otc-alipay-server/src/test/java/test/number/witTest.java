@@ -50,7 +50,7 @@ public class witTest {
 		String userid3 = "632QP888";
 		String key3 = "004475525F277F44BA4CDE4670B8E727";
 		String publickey3 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCZhADxkdiJFcFaqamlhcxE+bzekfJJFH/qm6sSXg88J+L5q1uboF7LVhtx7t0oz855PED77GsuVbwYhx42ztr4DsU4+5YJEJ/OQL0In3zOkU58mCeTGBbdeoR3DxjBBIkrmC8p6FjdeGw75Gf2YAnImYji+OOv9SX7+kWYBm/yZwIDAQAB";
-		for (int a = 0; a <= 1; a++) {
+		for (int a = 0; a <= 0; a++) {
 			ThreadUtil.execute(() -> {
 				new witTest().wit(userid1, key1, publickey1);
 			});
@@ -130,7 +130,7 @@ public class witTest {
 		objectToMap.put("appid", userid);
 		objectToMap.put("apporderid", StrUtil.uuid());
 		objectToMap.put("ordertime", d.format(new Date()) + "");
-		objectToMap.put("amount", 600);
+		objectToMap.put("amount", 660);
 		objectToMap.put("acctno", "63398293847548938" + RandomUtil.randomLong(1, 10));
 		objectToMap.put("acctname", "张三");
 		objectToMap.put("bankcode", "ICBC");
@@ -182,9 +182,9 @@ public class witTest {
 		String key = "D0FBE6229950990760223703DEEEC4F1";
 		String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCLIjBF1o1rJECZyD8a5qr+vwcdd1EPl+zCpZqhXV8Vn/zNNbAYguIKPkuCIIdp6bG2knsO0qjVJ0kaVRFoa72Vztku8zSQP+4huijDIBofX5FtXgjS91OMx5tNV9f3FaHd9X9BoVvUp8/BiPIYuD231s8F5PcpGHBP0fRdLI7HmwIDAQAB";
 
-
+		long amount = RandomUtil.randomLong(600, 800);
 		Deal deal = new Deal();
-		deal.setAmount("1025");//金额
+		deal.setAmount("" + amount);//金额
 		deal.setAppId(userid);//商户号
 		deal.setApplyDate(d.format(new Date()));
 		deal.setNotifyUrl("http://starpay168.com:5055");

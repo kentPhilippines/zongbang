@@ -29,7 +29,10 @@ public interface UserFundMapper {
     int updateByPrimaryKey(UserFund record);
 
 
-    @Select("select * from alipay_user_fund where userType = 2 and accountBalance > #{amount}  ")
+    @Select("select * from alipay_user_fund auf " +
+            " left join alipay_user_info aui on auf.userId = aui.userId " +
+            " where aui.userType = 2 and auf.accountBalance > #{amount} " +
+            " and aui.switchs = 1 and aui.receiveOrderState = 1 ")
     List<UserFund> findUserByAmount(@Param("amount") BigDecimal amount);
 
     @Select(" select  id, userId, userName, cashBalance, rechargeNumber, freezeBalance, accountBalance, " +

@@ -46,15 +46,15 @@ var rechargeVM = new Vue({
 		loadAmountList : function(){
 			var that = this;
 			that.amountList = [
-				 {amount : '2000元' ,code :'2000'}
-				,{amount : '5000元',code :'5000'}
-				,{amount : '8000元',code :'8000'}
-				,{amount : '10800元',code :'10800'}
-				,{amount :'20800元',code :'20800'}
-				,{amount : '26800元',code :'26800'}
-				,{amount : '36800元',code :'36800'}
-				,{amount : '46800元',code :'46800'}
-				,{amount : '50000元',code :'50000'}
+				{amount: '5000元', code: '5000'}
+				, {amount: '8000元', code: '8000'}
+				, {amount: '10800元', code: '10800'}
+				, {amount: '15800元', code: '10800'}
+				, {amount: '20800元', code: '20800'}
+				, {amount: '26800元', code: '26800'}
+				, {amount: '36800元', code: '36800'}
+				, {amount: '46800元', code: '46800'}
+				, {amount: '50000元', code: '50000'}
 			]
 		},
 		loadPayType : function() {

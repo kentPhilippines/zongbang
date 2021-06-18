@@ -63,9 +63,11 @@
 						<label>成功笔数:<strong class="form-details-item-highlight">{{account.toDayOrderCount}}</strong></label>  
 					</div>
 					<div class="form-details-item">
-						<label>费率</label> <span class="form-details-item-highlight">{{account.fee}}</span> 
-						<button  class="btn btn-outline-info btn-lg"   type="button"   style="margin: 0.2rem 0.2rem 0.2rem 0.2rem;  width: 7rem; height: 3rem;"  v-on:click="updataAccountFee(account.userId)"><span>修改费率</span>  </button>		
-					</div>
+                        <label>入款费率</label> <span class="form-details-item-highlight">{{account.fee}}</span>
+                        <button class="btn btn-outline-info btn-lg" type="button"
+                                style="margin: 0.2rem 0.2rem 0.2rem 0.2rem;  width: 7rem; height: 3rem;"
+                                v-on:click="updataAccountFee(account.userId)"><span>修改费率</span></button>
+                    </div>
 					<div class="form-details-item">
 						<label>账号性质:</label> <span class="form-details-item-highlight">{{account.isAgent == 1 ? '代理商' : '会员'}}</span> 
 						<button  class="btn btn-outline-info btn-lg"  v-show="account.isAgent != 1"  type="button"   style="margin: 0.2rem 0.2rem 0.2rem 0.2rem;  width: 7rem; height: 3rem;"  v-on:click="updateIsAgent(account.id,account.userId)"><span>升级代理</span>  

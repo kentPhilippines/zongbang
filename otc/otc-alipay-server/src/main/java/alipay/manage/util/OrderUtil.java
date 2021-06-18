@@ -558,21 +558,35 @@ public class OrderUtil {
         Withdraw wit = withdrawDao.findWitOrder(orderId);
         UserFund userFund = new UserFund();
         userFund.setUserId(wit.getUserId());
-        Result withdraw = amountPublic.deleteWithdraw(userFund, wit.getAmount(), wit.getOrderId());
-        if (!withdraw.isSuccess()) {
-            return withdraw;
-        }
-        Result deleteAmount = amountRunUtil.deleteAmount(wit, ip, flag);
-        if (!deleteAmount.isSuccess()) {
+        Result witFrzen = transactionTemplate.execute((Result) -> {
+            Result withdraw = amountPublic.deleteWithdraw(userFund, wit.getAmount(), wit.getOrderId());
+            if (!withdraw.isSuccess()) {
+                return withdraw;
+            }
+            Result deleteAmount = amountRunUtil.deleteAmount(wit, ip, flag, "卡商代付冻结");
+            if (!deleteAmount.isSuccess()) {
+                return deleteAmount;
+            }
             return deleteAmount;
+        });
+        if (!witFrzen.isSuccess()) {
+            log.info("【代付冻结失败，当前订单号：" + orderId + "】");
+            return witFrzen;
         }
-        Result withdraws = amountPublic.deleteWithdraw(userFund, wit.getFee(), wit.getOrderId());
-        if (!withdraws.isSuccess()) {
-            return withdraws;
-        }
-        Result deleteAmountFee = amountRunUtil.deleteAmountFee(wit, ip, flag);
-        if (!deleteAmountFee.isSuccess()) {
+        Result witFeeFrzen = transactionTemplate.execute((Result) -> {
+            Result withdraws = amountPublic.deleteWithdraw(userFund, wit.getFee(), wit.getOrderId());
+            if (!withdraws.isSuccess()) {
+                return withdraws;
+            }
+            Result deleteAmountFee = amountRunUtil.deleteAmountFee(wit, ip, flag, "卡商代付手续费冻结");
+            if (!deleteAmountFee.isSuccess()) {
+                return deleteAmountFee;
+            }
             return deleteAmountFee;
+        });
+        if (!witFeeFrzen.isSuccess()) {
+            log.info("【代付手续费冻结失败，当前订单号：" + orderId + "】");
+            return witFrzen;
         }
         return Result.buildSuccess();
     }

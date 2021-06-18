@@ -395,4 +395,9 @@ public class UserInfoServiceImpl implements UserInfoService {
         int a = userInfoDao.updataRemitOrderStateOFF(userId);
         return a > 0 && a < 2;
     }
+
+    @Override
+    public List<UserInfo> findAgentQr() {
+        return userInfoDao.findAgentQr();
+    }
 }
