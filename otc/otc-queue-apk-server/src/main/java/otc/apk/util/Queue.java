@@ -206,12 +206,16 @@ public class Queue {
         log.info("添加队列key = " + queueKey);
         String onlineLocationKey = alipayAccount.toString() + RedisConstant.User.QUEUEQRNODE;
         log.info("是否在线key = " + onlineLocationKey);
-
+        Double score = 10.0;
         LinkedHashSet<TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(queueKey, 0, -1);//linkedhashset 保证set集合查询最快
         if (CollUtil.isEmpty(zRangeWithScores)) {
-            Boolean zAdd = redisUtil.zAdd(queueKey, alipayAccount.toString(), 10);
+            Object o = redisUtil.get(onlineLocationKey);//如果当前媒介已存在数据，则取出当前排列顺序，增加
+            if (null != o) {
+                score = Double.valueOf(o.toString());
+            }
+            Boolean zAdd = redisUtil.zAdd(queueKey, alipayAccount.toString(), score);
             if (zAdd) {
-                redisUtil.set(onlineLocationKey, System.currentTimeMillis());
+                redisUtil.set(onlineLocationKey, score);
             }
             return zAdd;
         }
@@ -223,7 +227,7 @@ public class Queue {
         if (ObjectUtil.isNull(typedTuple)) {
             return false;
         }
-        Double score = typedTuple.getScore() + 10;//预留10个操作空间
+        score = typedTuple.getScore() + 10;//预留10个操作空间
         if (ObjectUtil.isNotNull(qr)) {
             Timestamp createTime = (Timestamp) qr.getCreateTime();//创建时间   多少天之前 .
             Result dayCount = configServiceClientFeignImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.NEW_QRCODE_PRIORITY);
@@ -234,11 +238,11 @@ public class Queue {
                 List<TypedTuple<Object>> collect = zRangeWithScores.stream().collect(Collectors.toList());
                 TypedTuple<Object> typedTuple2 = collect.get(zRangeWithScores.size() / 2);
                 score = typedTuple2.getScore();
-                score -= 0.1;
+                score -= 1;
             }
         }
         Boolean zAdd = redisUtil.zAdd(queueKey, alipayAccount.toString(), score);
-        redisUtil.set(onlineLocationKey, System.currentTimeMillis());
+        redisUtil.set(onlineLocationKey, score);
         return zAdd;
     }
 

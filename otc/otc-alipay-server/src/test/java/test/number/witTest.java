@@ -52,7 +52,7 @@ public class witTest {
 		String publickey3 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCZhADxkdiJFcFaqamlhcxE+bzekfJJFH/qm6sSXg88J+L5q1uboF7LVhtx7t0oz855PED77GsuVbwYhx42ztr4DsU4+5YJEJ/OQL0In3zOkU58mCeTGBbdeoR3DxjBBIkrmC8p6FjdeGw75Gf2YAnImYji+OOv9SX7+kWYBm/yZwIDAQAB";
 		for (int a = 0; a <= 0; a++) {
 			ThreadUtil.execute(() -> {
-				new witTest().wit(userid1, key1, publickey1);
+				//	new witTest().wit(userid1, key1, publickey1);
 			});
 		/*	ThreadUtil.execute(() -> {
 				new witTest().wit(userid2, key2, publickey2);

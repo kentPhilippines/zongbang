@@ -119,8 +119,9 @@ public class CreateOrder {
         UserInfo accountInfo = userInfoServiceImpl.findUserInfoByUserId(dealApp.getOrderAccount());//这里有为商户配置的 供应队列属性
         String[] queueCode = {};
         String bankInfo = "";
-        if (StrUtil.isNotBlank(accountInfo.getQueueList())) {
-            queueCode = accountInfo.getQueueList().split(",");//队列供应标识数组
+        if (StrUtil.isNotBlank(accountInfo.getAgent())) {
+            UserInfo agent = findAgent(accountInfo.getAgent());
+            queueCode = agent.getQueueList().split(",");//队列供应标识数组
         }
         String bc = GenerateOrderNo.Generate("BA");
         Medium qr = queue.findQr(bc, dealApp.getOrderAmount(), Arrays.asList(queueCode), false);//当前接口限制 收款回调，接单限制，接单评率等数据
@@ -332,4 +333,13 @@ public class CreateOrder {
         return userFundList.get(0).getUserId();
     }
 
+
+    UserInfo findAgent(String userId) {
+        UserInfo userAgent = userInfoServiceImpl.findUserAgent(userId);
+        if (StrUtil.isNotEmpty(userAgent.getAgent())) {
+            return findAgent(userAgent.getAgent());
+        }
+        return userAgent;
+
+    }
 }

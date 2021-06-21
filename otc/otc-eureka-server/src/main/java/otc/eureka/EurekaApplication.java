@@ -13,7 +13,7 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 @EnableEurekaServer   
 public class EurekaApplication {
 	public static void main(String[] args) {
-        int port = 8762;
+        int port = 8768;
         if(!NetUtil.isUsableLocalPort(port)) {
             System.err.printf("该端口被占用", port );
             System.exit(1);

@@ -162,7 +162,7 @@ public interface UserInfoMapper {
      */
     @Cacheable(cacheNames = {USER_LONG}, unless = "#result == null")
     @Select("select id, userId, userName,   userType, switchs, userNode," +
-            "    agent, isAgent " +
+            "    agent, isAgent ,queueList " +
             "  from alipay_user_info where userId = #{userId}")
     UserInfo findUserAgent(@Param("userId") String userId);
 

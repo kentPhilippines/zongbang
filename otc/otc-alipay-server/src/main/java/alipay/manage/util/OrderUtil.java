@@ -2,10 +2,7 @@ package alipay.manage.util;
 
 import alipay.manage.bean.*;
 import alipay.manage.mapper.*;
-import alipay.manage.service.CorrelationService;
-import alipay.manage.service.OrderService;
-import alipay.manage.service.UserInfoService;
-import alipay.manage.service.WithdrawService;
+import alipay.manage.service.*;
 import alipay.manage.util.amount.AmountPublic;
 import alipay.manage.util.amount.AmountRunUtil;
 import alipay.manage.util.bankcardUtil.BankAccountUtil;
@@ -287,6 +284,9 @@ public class OrderUtil {
         return Result.buildSuccessResult();
     }
 
+    @Autowired
+    private MediumService mediumServiceImpl;
+
     Result settlementOrderApp(DealOrder order) {
         Result dealAmount1 = null;
         /**
@@ -391,10 +391,16 @@ public class OrderUtil {
                 return deleteRechangerNumber;
             });
             if (user.getUserType().toString().equals("2")) {
+                ThreadUtil.execute(() -> {
+                    String orderQr = order.getOrderQr();
+                    String[] split = orderQr.split(":");
+                    String bankAccount = split[2];
+                    mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
+                });
                 transactionTemplate.execute((Result) -> {
-                    Result result = amountPublic.addAmounRecharge(userFund, new BigDecimal(order.getRetain2()), order.getOrderId());
-                    if (!result.isSuccess()) {
-                        throw new OrderException("充值扣减异常", null);
+                    Result addDeal = amountPublic.addDeal(userFund, new BigDecimal(order.getRetain2()), order.getDealAmount(), order.getOrderId());
+                    if (!addDeal.isSuccess()) {
+                        return addDeal;
                     }
                     Result addDealAmount = amountRunUtil.addDealAmount(order, ip, Boolean.FALSE);
                     if (!addDealAmount.isSuccess()) {

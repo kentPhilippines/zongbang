@@ -1,7 +1,7 @@
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://182.16.89.146:8761/eureka/
+      defaultZone: http://172.21.97.72:8768/eureka/
   instance:
     # 是否使用ip注册
     prefer-ip-address: true
@@ -37,9 +37,9 @@ spring:
           enabled: true
   redis:
     port: 6379
-    host: r-3nsnbeyh1ym8vjo2vf.redis.rds.aliyuncs.com
+    host: r-0iw4y7fkcnu6kbq3pepd.redis.japan.rds.aliyuncs.com
     timeout: 5000
-    password: kentredis:Bffdasdsdada9ijnasd6
+    password: kenthufutong:sdasdasDSdasdsadada9ijnasd6
     pool:
       max-idle: 200
       min-idle: 10

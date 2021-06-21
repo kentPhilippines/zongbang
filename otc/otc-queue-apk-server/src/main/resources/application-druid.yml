@@ -1,7 +1,7 @@
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://127.0.0.1:8762/eureka/
+      defaultZone: http://127.0.0.1:8768/eureka/
   instance:
     # 是否使用ip注册
     prefer-ip-address: true
@@ -40,7 +40,7 @@ spring:
     host: 127.0.0.1
     timeout: 5000
     pool:
-      max-idle: 100
+      max-idle: 200
       min-idle: 10
       max-active: 1000
       max-wait: -1
