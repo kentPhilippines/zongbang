@@ -28,6 +28,7 @@ import otc.result.Result;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -63,21 +64,34 @@ public class AgentContorller {
 			user.setAgent(user2.getUserId());
 			user.setUserType(Integer.valueOf(Common.User.USER_TYPE_QR));
 			user.setIsAgent(Common.User.USER_IS_MEMBER);
-		//	UserRate rateR = userRateService.findUserRateR(user2.getUserId());
-		//	user.setFee(rateR.getFee() + "");
-			Result addAccount = accountApiService.addAccount(user);
-			if (addAccount.isSuccess()) {
-				List<UserRate> userFeeList = userRateService.findUserRateInfoByUserId(user2.getUserId());
-				for( UserRate rate : userFeeList){
-					BigDecimal fee = rate.getFee();
-					String rebate = user.getFee();
-					BigDecimal myselfFee = new BigDecimal(rebate);
-					BigDecimal subtract = fee.subtract(myselfFee);
-					rate.setFee(subtract);
+			//	UserRate rateR = userRateService.findUserRateR(user2.getUserId());
+			//	user.setFee(rateR.getFee() + "");
+			List<UserRate> userFeeList = userRateService.findUserRateInfoByUserId(user2.getUserId());
+			List<UserRate> rateList = new ArrayList<>();
+			for (UserRate rate : userFeeList) {
+				if (rate.getFeeType().equals(2)) {
+					rate.setFee(new BigDecimal(0));
 					rate.setUserId(user.getUserId());
-					userRateService.add(rate);
+					rateList.add(rate);
+					//	userRateService.add(rate);
+					continue;
 				}
-				return Result.buildSuccessMessage("开户成功");
+				BigDecimal fee = rate.getFee();//自己的费率
+				String rebate = user.getFee();
+				BigDecimal myselfFee = new BigDecimal(rebate).divide(new BigDecimal(100));//返点汇率
+				if (myselfFee.compareTo(fee) > 0) {
+					return Result.buildFailMessage("开户费率设置失败");
+				}
+				rate.setFee(myselfFee);
+				rate.setUserId(user.getUserId());
+				rateList.add(rate);
+				//userRateService.add(rate);
+			}
+			accountApiService.addAccount(user);
+			for (UserRate rate : rateList) {
+				userRateService.add(rate);
+			}
+			return Result.buildSuccessMessage("开户成功");
 				/*UserRate rate = new UserRate();
 				rate.setUserId(user.getUserId());
 				rate.setFee(new BigDecimal(user.getFee()));
@@ -88,8 +102,6 @@ public class AgentContorller {
 				if (add) {
 					return Result.buildSuccessMessage("开户成功");
 				}*/
-			}
-			 return Result.buildFailMessage("开户失败");
 			}
 	    /**
 	     * <p>密码修改</p>
@@ -146,7 +158,7 @@ public class AgentContorller {
 			bean.setIsDeal(Common.isOk);
 			boolean flag = inviteCodeServiceImpl.addinviteCode(bean);
 			if (flag) {
-				return Result.buildSuccessResult("操作成功", "127.0.0.1:9010/register?inviteCode=" + createinviteCode);
+				return Result.buildSuccessResult("操作成功", "http://34.84.245.185:9110/register?inviteCode=" + createinviteCode);
 			}
 			return Result.buildFail();
 		}
@@ -188,15 +200,18 @@ public class AgentContorller {
 			PageHelper.startPage(Integer.valueOf(pageNum), Integer.valueOf(pageSize));
 			List<UserInfo> userList = userInfoService.findSunAccount(user);
 			UserRate userRate = null;
+			UserRate userRateW = null;
 			UserFund userfund = null;
 			for (UserInfo qrUser : userList) {
 				findOnline(qrUser);
 				userRate = userRateService.findUserRateR(qrUser.getUserId());
+				userRateW = userRateService.findUserRateW(qrUser.getUserId());
 				qrUser.setFee(userRate.getFee() + "");
+				qrUser.setCardFee(userRateW.getFee() + "");
 				userfund = userFundService.findUserInfoByUserId(qrUser.getUserId());
-	            qrUser.setRechargeNumber(userfund.getRechargeNumber());
-	            qrUser.setCashBalance(userfund.getCashBalance());
-	            }
+				qrUser.setRechargeNumber(userfund.getAccountBalance());
+				qrUser.setCashBalance(userfund.getTodayProfit());
+			}
 	        PageInfo<UserInfo> pageInfo = new PageInfo<UserInfo>(userList);
 	        PageResult<UserInfo> pageR = new PageResult<UserInfo>();
 	        pageR.setContent(pageInfo.getList());

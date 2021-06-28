@@ -12,7 +12,7 @@ import java.util.List;
 
 @Mapper
 public interface UserRateMapper {
-    static final String RATE = "USERRATE:INFO";
+    static final String RATE = "USERINFO:INFO";
 
     int countByExample(UserRateExample example);
 
@@ -26,6 +26,7 @@ public interface UserRateMapper {
 
     List<UserRate> selectByExample(UserRateExample example);
 
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     UserRate selectByPrimaryKey(Integer id);
 
     int updateByExampleSelective(@Param("record") UserRate record, @Param("example") UserRateExample example);
@@ -54,13 +55,15 @@ public interface UserRateMapper {
      * @param productCode
      * @return
      */
+
     @Select("select * from alipay_user_rate where userId = #{userId} and payTypr = #{payTypr} and channelId = #{channel}")
     UserRate findProductFeeBy(@Param("userId")String userId,@Param("payTypr") String productCode,@Param("channel")  String channel);
 
-
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     @Select("select * from alipay_user_rate where id = #{id}")
     UserRate findFeeById(@Param("id")Integer id);
 
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     @Select("select * from alipay_user_rate where userId = #{userId}")
     List<UserRate> findUserRateInfoByUserId(@Param("userId") String userId);
 
@@ -68,6 +71,7 @@ public interface UserRateMapper {
      * 查询码商入款费率
      * @return
      */
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     @Select("select * from alipay_user_rate where feeType = 1 and userId =  #{userId}")
     UserRate findUserRateR(@Param("userId") String userId);
 
@@ -75,6 +79,7 @@ public interface UserRateMapper {
     @Update("update alipay_user_rate set fee = #{fee},payTypr=#{payTypr} where feeType = 1 and userId = #{userId} ")
     int updateRateR(@Param("userId") String userId, @Param("fee") String fee, @Param("payTypr") String payTypr);
 
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     @Select("select * from alipay_user_rate where userId = #{userId} and payTypr = #{product} and channelId = #{channel}")
     UserRate findProductFeeByAll(@Param("userId") String userId, @Param("product") String product, @Param("channel") String channelId);
 
@@ -98,9 +103,15 @@ public interface UserRateMapper {
      * @param feeType  费率类型
      * @return
      */
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     @Select("select * from alipay_user_rate where userId = #{userId} and userType = #{userType} and payTypr = #{payTypr} and feeType  = #{feeType}")
     UserRate findAgentChannelFee(@Param("userId") String userId, @Param("userType") Integer userType, @Param("payTypr") String payTypr, @Param("feeType") Integer feeType);
 
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     @Select("select * from alipay_user_rate where feeType = 2 and `switchs` = 1 and userId = #{userId} limit 1 ")
     UserRate findUserRateWitByUserIdApp(String userId);
+
+    @Cacheable(cacheNames = {RATE}, unless = "#result == null")
+    @Select("select * from alipay_user_rate where feeType = 2 and userId =  #{userId}")
+    UserRate findUserRateW(String userId);
 }

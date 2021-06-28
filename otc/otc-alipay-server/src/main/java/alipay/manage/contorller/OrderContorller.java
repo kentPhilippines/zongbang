@@ -101,15 +101,19 @@ public class OrderContorller {
 	@ResponseBody
 	@Transactional
 	public Result userConfirmToPaid(HttpServletRequest request,String orderId) {
-        UserInfo user = sessionUtil.getUser(request);
-        if (ObjectUtil.isNull(user)) {
-            throw new UserException("当前用户未登录", null);
-        }
-        logUtil.addLog(request, "当前卡商置交易订单成功：" + orderId + "，：" + "，操作人：" + user.getUserId(), user.getUserId());
-        Result orderDealSu = orderUtil.orderDealSu(orderId, HttpUtil.getClientIP(request), user.getUserId());
-        return orderDealSu;
-
-    }
+		UserInfo user = sessionUtil.getUser(request);
+		if (ObjectUtil.isNull(user)) {
+			throw new UserException("当前用户未登录", null);
+		}
+		logUtil.addLog(request, "当前卡商置交易订单成功：" + orderId + "，：" + "，操作人：" + user.getUserId(), user.getUserId());
+		DealOrder orderByOrderId = orderServiceImpl.findOrderByOrderId(orderId);
+		if (StrUtil.isNotEmpty(orderByOrderId.getOrderQr())) {
+			Result orderDealSu = orderUtil.orderDealSu(orderId, HttpUtil.getClientIP(request), user.getUserId());
+			return orderDealSu;
+		} else {
+			return Result.buildFailMessage("请绑定出款卡");
+		}
+	}
 
 	@GetMapping("/findMyReceiveOrderRecordByPage")
 	@ResponseBody
@@ -363,9 +367,33 @@ public class OrderContorller {
 		Result bean = JSONUtil.toBean(parseObj, Result.class);
 		return bean;
 	}
-		 
+
+	@GetMapping("/addQrCode")
+	@ResponseBody
+	public Result addQrCode(String orderId, String qrcodeId, HttpServletRequest request) {
+		UserInfo user = sessionUtil.getUser(request);
+		if (ObjectUtil.isNull(user)) {
+			log.info("当前用户未登陆");
+			return Result.buildFailMessage("当前用户未登陆");
+		}
+		if (StrUtil.isBlank(orderId)) {
+			return Result.buildFailResult("参数为空");
+		}
+		if (StrUtil.isBlank(qrcodeId)) {
+			return Result.buildFailResult("参数为空");
+		}
+
+		boolean flag = orderServiceImpl.updatePayImg(orderId, qrcodeId);
+		if (flag) {
+			return Result.buildSuccess();
+		} else {
+			return Result.buildFail();
+		}
+	}
+
 	/**
 	 * <p>申诉</p>
+	 *
 	 * @param request
 	 * @param appealType
 	 * @param actualPayAmount
@@ -383,5 +411,11 @@ public class OrderContorller {
 		}
 		return  null;
 	}
+
+
+
+
+
+
 	
 }

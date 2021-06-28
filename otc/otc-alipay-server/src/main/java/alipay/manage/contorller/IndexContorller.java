@@ -245,15 +245,24 @@ public class IndexContorller {
 	public String payEr() {
 		return "payEr";
 	}
+
+	@GetMapping("/order-loadPayImg")
+	@LogMonitor(required = true)
+	public String loadPayImg() {
+		return "order-loadPayImg";
+	}
+
 	@ResponseBody
-		@GetMapping("/paySuccessNotice")
+	@GetMapping("/paySuccessNotice")
 	public String paySuccessNotice() {
 		return "success";
 	}
+
 	@GetMapping("/google")
-	public String google( ) {
+	public String google() {
 		return "google";
 	}
+
 	@GetMapping("/account_manage")
 	public String accountManage() {
 		return "account-manage";

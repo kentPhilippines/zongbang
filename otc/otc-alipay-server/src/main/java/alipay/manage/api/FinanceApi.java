@@ -109,6 +109,15 @@ public class FinanceApi {
                 Result withdraw = Result.buildFail();
                 try {
                     withdraw = factoryForStrategy.getStrategy(channelFee.getImpl()).withdraw(witOrder);
+                    ThreadUtil.execute(() -> {
+                        //修改订单为已推送 不管当前订单是否推送成功
+                        boolean b = withdrawServiceImpl.updatePush(witOrder.getOrderId());
+                        if (b) {
+                            logger.info("【当前订单已推送，状态已修改，当前订单号：" + witOrder.getOrderId() + "】");
+                        } else {
+                            logger.info("【当前订单已推送，状态未修改，当前订单号：" + witOrder.getOrderId() + "】");
+                        }
+                    });
                 } catch (Exception e) {
                     return Result.buildFailMessage("代付渠道未接通或渠道配置错误，请联系技术人员处理");
                 }

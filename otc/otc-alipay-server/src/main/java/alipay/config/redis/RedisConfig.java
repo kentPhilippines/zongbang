@@ -47,7 +47,7 @@ public class RedisConfig extends CachingConfigurerSupport {
     private int timeout;
     @Value("${spring.redis.pool.max-idle}")
     private int maxIdle;
-    /* @Value("${spring.redis.password}")
+   /* @Value("${spring.redis.password}")
      private String pasword;*/
     @Value("${spring.redis.pool.max-wait}")
     private long maxWaitMillis;

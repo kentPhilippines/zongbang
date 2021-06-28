@@ -62,7 +62,6 @@ public class AlipayApplication {
 			System.err.print("端口%d被占用了，无法启动%n");
 			port = ++defaultPort;
 		}
-
 		new SpringApplicationBuilder(AlipayApplication.class).properties("server.port=" + port).run(args);
 	}
 }

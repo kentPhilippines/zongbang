@@ -23,6 +23,7 @@ public interface RechargeMapper {
 
     List<Recharge> selectByExampleWithBLOBs(RechargeExample example);
 
+
     List<Recharge> selectByExample(RechargeExample example);
 
     Recharge selectByPrimaryKey(Integer id);

@@ -120,4 +120,14 @@ public interface MediumService {
     List<Medium> findBankByAmount(BigDecimal amount, List<String> code);
 
     void updateMountNow(String bankAccount, BigDecimal dealAmount, String add);
+
+
+    /**
+     * 根据银行卡和所属卡商查询媒介
+     *
+     * @param cardInfo
+     * @param userId
+     * @return
+     */
+    Medium findMediumByBankAndId(String cardInfo, String userId);
 }

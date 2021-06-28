@@ -4,17 +4,16 @@ package alipay.manage.util.bankcardUtil;
 import alipay.config.redis.RedisUtil;
 import alipay.manage.bean.*;
 import alipay.manage.mapper.ChannelFeeMapper;
-import alipay.manage.service.OrderService;
-import alipay.manage.service.UserFundService;
-import alipay.manage.service.UserInfoService;
-import alipay.manage.service.UserRateService;
+import alipay.manage.service.*;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import otc.api.alipay.Common;
+import otc.bean.alipay.FileList;
 import otc.bean.alipay.Medium;
 import otc.bean.dealpay.Recharge;
 import otc.bean.dealpay.Withdraw;
@@ -59,6 +58,8 @@ public class CreateOrder {
     private BankUtil queue;
     @Autowired
     private UserFundService userFundService;
+    @Autowired
+    private CorrelationService correlationServiceImpl;
 
     /**
      * 卡商充值 卡商入款订单生成
@@ -100,9 +101,13 @@ public class CreateOrder {
         }
         channelFeeId = String.valueOf(channnelFee.getId());
         bankInfo = "";// 出款银行卡信息暂时为空， 该银行卡信息由 卡商去选择出款
-        return addOrder(bc, wit.getOrderId(), wit.getAppOrderId(), wit.getUserId(),
+        Result result = addOrder(bc, wit.getOrderId(), wit.getAppOrderId(), wit.getUserId(),
                 wit.getAmount().toString(), channnelId, channelFeeId,
                 flag, bankInfo, userFeeId, Boolean.FALSE, wit.getRetain2(), wit.getNotify(), null);
+        ThreadUtil.execute(() -> {
+            corr(bc, null);
+        });
+        return result;
     }
 
     /**
@@ -137,6 +142,8 @@ public class CreateOrder {
                 channelFeeId, flag, bankInfo, userFeeId,
                 Boolean.FALSE, dealApp.getOrderIp(), dealApp.getNotify(), dealApp.getBack());
         if (!result.isSuccess()) {
+
+
             return result;
         }
         Map cardmap = new HashMap();
@@ -148,7 +155,31 @@ public class CreateOrder {
         cardmap.put("oid_partner", dealApp.getOrderId());
         redis.hmset(MARS + bc, cardmap, 600000);
         result.setResult(PayApiConstant.Notfiy.OTHER_URL + "/pay?orderId=" + bc + "&type=203");
+        ThreadUtil.execute(() -> {
+            corr(bc, qr.getMediumNumber());
+        });
         return result;
+    }
+
+    void corr(String orderId, String BankNo) {
+        ThreadUtil.execute(() -> {
+            DealOrder order = orderServiceImpl.findOrderByOrderId(orderId);
+            CorrelationData corr = new CorrelationData();
+            corr.setAmount(order.getDealAmount());
+            corr.setOrderId(order.getOrderId());
+            if (StrUtil.isNotEmpty(BankNo)) {
+                corr.setQrId(BankNo);
+            }
+            corr.setOrderStatus(Integer.valueOf(order.getOrderStatus()));
+            corr.setUserId(order.getOrderQrUser());
+            corr.setAppId(order.getOrderAccount());
+            boolean addCorrelationDate = correlationServiceImpl.addCorrelationDate(corr);
+            if (addCorrelationDate) {
+                log.info("【订单号：" + order.getOrderId() + "，添加数据统计成功】");
+            } else {
+                log.info("【订单号：" + order.getOrderId() + "，添加数据统计失败】");
+            }
+        });
     }
 
     public Result rechargeAddOrder(Recharge recharge) {
@@ -244,6 +275,7 @@ public class CreateOrder {
                 order.setOrderQr(bankInfo);
                 BigDecimal actualAmount = null;
                 log.info("【当前入款账户交易费率为：" + fee + "】");
+
                 BigDecimal multiply = fee1.multiply(dealAmount);  //上缴系统金额
                 log.info("【当前入款账户交易扣除手续费为：" + multiply + "】");
                 actualAmount = dealAmount.subtract(multiply);

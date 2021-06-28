@@ -46,7 +46,7 @@ public class BankAccountUtil {
                 String orderQr = order.getOrderQr();
                 String[] split = orderQr.split(":");
                 String bankAccount = split[2];
-                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
+                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
             });
 
             //出款订单 卡商结算
@@ -77,6 +77,7 @@ public class BankAccountUtil {
                 return result2;
             }
             log.info("【金额修改完毕，流水生成成功】");
+            agentChannelBankCard(order, false, ip);
             return Result.buildSuccessResult();
             /**
              * 出款订单类型
@@ -104,7 +105,7 @@ public class BankAccountUtil {
                 String orderQr = order.getOrderQr();
                 String[] split = orderQr.split(":");
                 String bankAccount = split[2];
-                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
+                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
             });
             UserInfo channel = userInfoServiceImpl.findUserByOrder(order.getOrderQrUser());
             UserFund userFund = new UserFund();
@@ -141,8 +142,8 @@ public class BankAccountUtil {
         return Result.buildFail();
     }
 
-    private void agentChannelBankCard(DealOrder order, boolean flag, String ip) {
-        String orderQrUser = order.getOrderQrUser();
+    public void agentChannelBankCard(DealOrder order, boolean flag, String ip) {
+        String orderQrUser = order.getOrderQrUser();//当前
         UserInfo userAgent = userInfoServiceImpl.findUserAgent(orderQrUser);//当前用户代理商
         if (StrUtil.isEmpty(userAgent.getAgent())) {
             log.info("【当前卡商不存在代理商结算，当前订单号为：" + order.getOrderQr() + "】");
@@ -150,7 +151,7 @@ public class BankAccountUtil {
         }
         Integer feeId = order.getFeeId();
         UserRate rate = userInfoServiceImpl.findUserRateById(feeId);
-        Result channelBankRateList = findChannelBankRateList(userAgent.getUserId(), rate, order, flag, ip);
+        Result channelBankRateList = findChannelBankRateList(userAgent.getAgent(), rate, order, flag, ip);
 
     }
 
@@ -161,9 +162,9 @@ public class BankAccountUtil {
         log.info("【当前代理商结算费率：" + userRate.getFee() + "】");
         log.info("【当前当前我方：" + rate.getUserId() + "】");
         log.info("【当前我方结算费率：" + rate.getFee() + "】");
-        BigDecimal fee = userRate.getFee();
-        BigDecimal fee2 = rate.getFee();
-        BigDecimal subtract = fee2.subtract(fee);
+        BigDecimal fee = userRate.getFee();//代理费率
+        BigDecimal fee2 = rate.getFee();//我的费率
+        BigDecimal subtract = fee.subtract(fee2);
         log.info("【当前结算费率差为：" + subtract + "】");
         BigDecimal amount = orderApp.getDealAmount();
         BigDecimal multiply = amount.multiply(subtract);
@@ -211,7 +212,6 @@ public class BankAccountUtil {
 
             /**
              * 卡商出款订单回滚逻辑
-             *
              * 根据已生产的资金流水 扣除账号相关资金
              * 1，扣款
              * 2，扣除手续费

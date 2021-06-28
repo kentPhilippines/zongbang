@@ -234,7 +234,7 @@ public class MediumServiceImpl implements MediumService {
 
 
             List<Medium> bankByAmountAndAttr = mediumDao.findBankByAmountAndAttr(code);
-            for (Medium med : bankByAmountAndAttr) {
+         /*   for (Medium med : bankByAmountAndAttr) {               关闭银行卡限额
                 Boolean a = Boolean.FALSE;
                 if (Double.valueOf(med.getMountNow()) + amount.toBigInteger().doubleValue() < Double.valueOf(med.getMountLimit())) {
                     medList.add(med);
@@ -243,10 +243,8 @@ public class MediumServiceImpl implements MediumService {
                 if (!a && Double.valueOf(med.getMountSystem()) + amount.toBigInteger().doubleValue() < Double.valueOf(med.getMountLimit())) {
                     medList.add(med);
                 }
-            }
-
-
-            return medList;
+            }*/
+            return bankByAmountAndAttr;
         }
     }
 
@@ -257,6 +255,11 @@ public class MediumServiceImpl implements MediumService {
         } else if (add.equals("add")) {//加款
             mediumDao.addMountNow(bankAccount, dealAmount);
         }
+    }
+
+    @Override
+    public Medium findMediumByBankAndId(String cardInfo, String userId) {
+        return mediumDao.findMediumByBankAndId(cardInfo, userId);
     }
 
 }

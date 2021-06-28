@@ -43,19 +43,24 @@ public class UserRateServiceImpl implements UserRateService {
 		return userRateMapper.selectByPrimaryKey(feeId);
 	}
 
-	@Override
-	public UserRate findRateFeeType(Integer feeId) {
-		return userRateMapper.findRateFeeType(feeId);
-	}
+    @Override
+    public UserRate findRateFeeType(Integer feeId) {
+        return userRateMapper.findRateFeeType(feeId);
+    }
 
-	@Override
-	public UserRate findUserRateWitByUserIdApp(String userId) {
-		return userRateMapper.findUserRateWitByUserIdApp(userId);
-	}
+    @Override
+    public UserRate findUserRateWitByUserIdApp(String userId) {
+        return userRateMapper.findUserRateWitByUserIdApp(userId);
+    }
 
-	@Override
-	public UserRate findAgentChannelFee(String agent, Integer userType, String payTypr, Integer feeType) {
-		return userRateMapper.findAgentChannelFee(agent, userType, payTypr, feeType);
-	}
+    @Override
+    public UserRate findUserRateW(String userId) {
+        return userRateMapper.findUserRateW(userId);
+    }
+
+    @Override
+    public UserRate findAgentChannelFee(String agent, Integer userType, String payTypr, Integer feeType) {
+        return userRateMapper.findAgentChannelFee(agent, userType, payTypr, feeType);
+    }
 
 }

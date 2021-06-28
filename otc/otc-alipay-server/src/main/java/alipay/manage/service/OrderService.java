@@ -158,14 +158,24 @@ public interface OrderService {
 	 * @param externalOrderId
 	 * @return
 	 */
-	List<DealOrder> findExternalOrderId(String externalOrderId);
+    List<DealOrder> findExternalOrderId(String externalOrderId);
 
 
-	/**
-	 * 根据订单号查询充值订单
-	 *
-	 * @param rechargeId
-	 * @return
-	 */
-	Recharge findrecharge(String rechargeId);
+    /**
+     * 根据订单号查询充值订单
+     *
+     * @param rechargeId
+     * @return
+     */
+    Recharge findrecharge(String rechargeId);
+
+
+    /**
+     * 修改出款订单的入款凭证
+     *
+     * @param orderId
+     * @param qrcodeId
+     * @return
+     */
+    boolean updatePayImg(String orderId, String qrcodeId);
 }

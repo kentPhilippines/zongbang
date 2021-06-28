@@ -119,7 +119,7 @@ public interface UserInfoMapper {
 
     @CacheEvict(value = USER, allEntries = true)
     @Update("update alipay_user_info set payPasword = #{newPassword} where userId = #{userId}")
-	int updataPayPassword(String userId, String newPayPassword);
+    int updataPayPassword(@Param("userId") String userId, @Param("newPassword") String newPayPassword);
 
 
     @Update("update alipay_user_fund set  todayDealAmount = 0 ,todayProfit = 0,todayOrderCount = 0 , todayAgentProfit = 0  , todayWitAmount = 0 ,todayOtherWitAmount = 0")

@@ -241,7 +241,7 @@ public class VendorRequestApi {
                 exceptionOrderServiceImpl.addWitEx(userId, finalWitAmount.toString(), "商户相应提示：当前代付最低金额为；" + finalUserRate.getRetain2() + "处理方法：金额限制为" + finalUserRate.getRetain2(), HttpUtil.getClientIP(request), paramMap.get("apporderid").toString());
             });
             closeObject(witAmount, money, amount1, amount1, switchs, key, paramMap, userId, userInfo, finalWitAmount, finalUserRate);
-            return Result.buildFailMessage("当前代付最低金额为300");
+            return Result.buildFailMessage("当前代付最低金额为:" + money);
         }
         if (!(higMoney.compareTo(witAmount) > -1)) {
             log.info("【当前代付最高金额为50000】");

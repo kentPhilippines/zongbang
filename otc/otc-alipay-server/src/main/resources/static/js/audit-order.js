@@ -13,43 +13,49 @@ var auditOrderVM = new Vue({
 		pageNum: 1,
 		receiveOrderTime: dayjs().format('YYYY-MM-DD'),
 		totalPage: 1,
-		userSreenshotIds: ''
+		userSreenshotIds: '',
+		addQrShow: false,
+		orderShow: true,
+		orderId1: '',
+		qrcodeId: ''
+
 	},
-	 filters: {
-		 dateFilter: function (data, format = "") {
-             var dt = new Date(data);
-             var y = dt.getFullYear();
-             var m = (dt.getMonth()+1).toString().padStart(2,"0");
-             var d = dt.getDate().toString().padStart(2,"0");
-             var h = dt.getHours().toString().padStart(2,"0");
-             var mm = dt.getMinutes().toString().padStart(2,"0");
-             var s = dt.getSeconds().toString().padStart(2,"0");
-             if (format.toLocaleLowerCase() === "yyyy-mm-dd" ||
-                 format.toLocaleLowerCase() === "") {
-                 return `${y}-${m}-${d}`;
-             } else if (format.toLocaleLowerCase() === "yyyy/mm/dd") {
-                 return `${y}/${m}/${d}`;
-             } else if (format.toLocaleLowerCase() === "yyyy-mm-dd hh:mm:ss") {
-                 return `${y}-${m}-${d} ${h}:${mm}:${s}`;
-             } else if (format.toLocaleLowerCase() === "yyyy/mm/dd hh:mm:ss") {
-                 return `${y}/${m}/${d} ${h}:${mm}:${s}`;
-             } else {
-                 return `输入的时间格式有误`;
-             }
-         }
-	 },
-	computed : {},
-	created : function() {
+	filters: {
+		dateFilter: function (data, format = "") {
+			var dt = new Date(data);
+			var y = dt.getFullYear();
+			var m = (dt.getMonth() + 1).toString().padStart(2, "0");
+			var d = dt.getDate().toString().padStart(2, "0");
+			var h = dt.getHours().toString().padStart(2, "0");
+			var mm = dt.getMinutes().toString().padStart(2, "0");
+			var s = dt.getSeconds().toString().padStart(2, "0");
+			if (format.toLocaleLowerCase() === "yyyy-mm-dd" ||
+				format.toLocaleLowerCase() === "") {
+				return `${y}-${m}-${d}`;
+			} else if (format.toLocaleLowerCase() === "yyyy/mm/dd") {
+				return `${y}/${m}/${d}`;
+			} else if (format.toLocaleLowerCase() === "yyyy-mm-dd hh:mm:ss") {
+				return `${y}-${m}-${d} ${h}:${mm}:${s}`;
+			} else if (format.toLocaleLowerCase() === "yyyy/mm/dd hh:mm:ss") {
+				return `${y}/${m}/${d} ${h}:${mm}:${s}`;
+			} else {
+				return `输入的时间格式有误`;
+			}
+		}
 	},
-	mounted : function() {
+	computed: {},
+	created: function () {
+	},
+	mounted: function () {
 		var that = this;
 		headerVM.title = '审核订单';
 		//that.loadAppealTypeDictItem();
 		that.getBankCard();
 		that.loadPlatformOrder();
-		$('.sreenshot').on('filebatchuploadsuccess', function (event, data) {
-			that.userSreenshotIds = data.response.result.join(',');
-			that.userStartAppealInner();
+		$('.gathering-code-pic').on('fileuploaded', function (event, data, previewId, index) {
+			that.qrcodeId = data.response.result.join(',');
+			debugger;
+			that.addOrderPayImg(that.qrcodeId);
 		});
 	},
 	methods : {
@@ -69,8 +75,8 @@ var auditOrderVM = new Vue({
 		},
 		/**
 		 * 加载申诉类型字典项
-		
-		loadAppealTypeDictItem : function() {
+
+		 loadAppealTypeDictItem : function() {
 			var that = this;
 			that.$http.get('/dictconfig/findDictItemInCache', {
 				params : {
@@ -82,9 +88,8 @@ var auditOrderVM = new Vue({
 		},
 		 */
 		enterOrder: function (orderId, bank) {
-			debugger;
 			var that = this;
-			var bankCard = $("." + orderId + "").val();
+			var bankCard = $("." + orderId + "").val();//已经选择的出款卡数据
 			if (bank == '' || bank == null) {
 				if (bankCard == null || bankCard == '') {
 					layer.alert('请确认出款卡', {
@@ -139,39 +144,39 @@ var auditOrderVM = new Vue({
 			});
 		},
 		confirmToPaid : function(orderId) {
-            var that = this;
-            layer.msg('确认订单成功？', {
-                time: 0 //不自动关闭
-                , btn: ['已成功', '点错了']
-                , yes: function (index) {
-                    that.$http.get('/order/userConfirmToPaid', {
-                        params: {
-                            orderId: orderId
-                        }
-                    }).then(function (res) {
-                        if (res.body.success) {
-                            layer.alert('操作成功', {
-                                icon: 1,
-                                time: 2000,
-									shade : false
-								});
-								that.loadPlatformOrder();
-							}else{
-								layer.alert(res.body.message, {
-									icon : 1,
-									time : 2000,
-									shade : false
-								});
-								that.loadPlatformOrder();
-							}
-						});
-					  return ;
-				  }
-					,no:function(index){
-						return ;
-					}
-				});
-			 
+			var that = this;
+			layer.msg('确认订单成功？', {
+				time: 0 //不自动关闭
+				, btn: ['已成功', '点错了']
+				, yes: function (index) {
+					that.$http.get('/order/userConfirmToPaid', {
+						params: {
+							orderId: orderId
+						}
+					}).then(function (res) {
+						if (res.body.success) {
+							layer.alert('操作成功', {
+								icon: 1,
+								time: 2000,
+								shade: false
+							});
+							that.loadPlatformOrder();
+						} else {
+							layer.alert(res.body.message, {
+								icon: 1,
+								time: 2000,
+								shade: false
+							});
+							that.loadPlatformOrder();
+						}
+					});
+					return;
+				}
+				, no: function (index) {
+					return;
+				}
+			});
+
 		},
 
 		showAppealPage : function(order) {
@@ -190,37 +195,7 @@ var auditOrderVM = new Vue({
 			this.loadPlatformOrder();
 		},
 
-		initFileUploadWidget : function(storageId) {
-			var initialPreview = [];
-			var initialPreviewConfig = [];
-			if (storageId != null) {
-				initialPreview.push('/storage/fetch/' + storageId);
-				initialPreviewConfig.push({
-					downloadUrl : '/storage/fetch/' + storageId
-				});
-			}
-			$('.sreenshot').fileinput('destroy').fileinput({
-				uploadAsync : false,
-				browseOnZoneClick : true,
-				showBrowse : false,
-				showCaption : false,
-				showClose : true,
-				showRemove : false,
-				showUpload : false,
-				dropZoneTitle : '点击选择图片',
-				dropZoneClickTitle : '',
-				layoutTemplates : {
-					footer : ''
-				},
-				maxFileCount : 2,
-				uploadUrl : '/storage/uploadPic',//上传图片接口
-				enctype : 'multipart/form-data',
-				allowedFileExtensions : [ 'jpg', 'png', 'bmp', 'jpeg' ],
-				initialPreview : initialPreview,
-				initialPreviewAsData : true,
-				initialPreviewConfig : initialPreviewConfig
-			});
-		},
+
 
 		userStartAppeal : function() {
 			var that = this;
@@ -273,15 +248,108 @@ var auditOrderVM = new Vue({
 				userSreenshotIds : that.userSreenshotIds,
 				merchantOrderId : that.selectedOrder.orderId,
 			}, {
-				emulateJSON : true
-			}).then(function(res) {
+				emulateJSON: true
+			}).then(function (res) {
 				layer.alert('发起申诉成功', {
-					icon : 1,
-					time : 2000,
-					shade : false
+					icon: 1,
+					time: 2000,
+					shade: false
 				});
 				that.showWaitConfirmOrderPage();
 			});
+		},
+		addQr: function (orderId) {//添加收款码
+			headerVM.showBackFlag = false;
+			headerVM.title = '绑定收款凭证';
+			this.orderShow = false;
+			this.addQrShow = true;
+			this.orderId1 = orderId;
+			this.initFileUploadWidget();
+		},
+		forQrManage: function () {
+			headerVM.showBackFlag = false;
+			headerVM.title = '审核订单';
+			this.orderShow = true;
+			this.addQrShow = false;
+			this.orderId1 = null;
+			this.loadPlatformOrder();
+		},
+		initFileUploadWidget: function (storageId) {
+			var initialPreview = [];
+			var initialPreviewConfig = [];
+			if (storageId != null) {
+				initialPreview.push('/storage/fetch/' + storageId);
+				initialPreviewConfig.push({
+					downloadUrl: '/storage/fetch/' + storageId
+				});
+			}
+			$('.gathering-code-pic').fileinput('destroy').fileinput({
+				browseOnZoneClick: true,
+				showBrowse: false,
+				showCaption: false,
+				showClose: true,
+				showRemove: false,
+				showUpload: false,
+				dropZoneTitle: '点击选择图片',
+				dropZoneClickTitle: '',
+				layoutTemplates: {
+					footer: ''
+				},
+				maxFileCount: 1,
+				uploadUrl: '/storage/uploadPic',
+				enctype: 'multipart/form-data',
+				allowedFileExtensions: ['jpg', 'png', 'bmp', 'jpeg'],
+				initialPreview: initialPreview,
+				initialPreviewAsData: true,
+				initialPreviewConfig: initialPreviewConfig
+			});
+		},
+		addImg: function () {
+			$('.gathering-code-pic').fileinput('upload');
+			if ($('.gathering-code-pic').fileinput('getPreview').content.length != 0) {
+			} else {
+				var filesCount = $('.gathering-code-pic').fileinput('getFilesCount');
+				if (filesCount == 0) {
+					layer.alert('请选择要上传的图片', {
+						title: '提示',
+						icon: 7,
+						time: 3000
+					});
+					return;
+				}
+				$('.gathering-code-pic').fileinput('upload');
+			}
+			var filesCount = $('.gathering-code-pic').fileinput('getFilesCount');
+		},
+		addOrderPayImg: function (qrcodeId) {
+
+			orderId = this.orderId1;
+			if (null == qrcodeId) {
+				qrcodeId = this.qrcodeId
+			}
+			this.$http.get('/order/addQrCode', {
+				params: {
+					qrcodeId: qrcodeId,
+					orderId: orderId
+				}
+			}).then(function (res) {
+				if (res.body.success) {
+					layer.alert('操作成功!', {
+						icon: 1,
+						time: 3000,
+						shade: false
+					});
+					//这个地方应该是回到出款页面，可以让用户看到点击确认按钮
+					this.forQrManage();
+				} else {
+					layer.alert(res.body.message, {
+						icon: 1,
+						time: 3000,
+						shade: false
+					});
+				}
+			});
 		}
+
 	}
 });

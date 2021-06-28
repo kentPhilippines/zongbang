@@ -123,7 +123,6 @@ public class OrderUtil {
      * @param ip      操作 ip
      * @return
      */
-    @Transactional
     public Result withrawOrderEr(String orderId, String approval, String comment, String ip) {
         Withdraw order = withdrawDao.findWitOrder(orderId);
         if (order == null) {
@@ -216,6 +215,7 @@ public class OrderUtil {
         log.info("【调用码商交易订单为成功的方法】");
         Result updataDealOrderSu = updataDealOrderSu(orderId, flag ? "人工置交易订单为成功，操作人为：" + userId + "" : "系统置交易订单为成功", ip, flag);
         log.info("【返回结果：" + updataDealOrderSu.toString() + "】");
+
         return updataDealOrderSu;
     }
 
@@ -238,6 +238,17 @@ public class OrderUtil {
             if (!orderServiceImpl.updateOrderStatus(order.getOrderId(), OrderDealStatus.成功.getIndex().toString(), msg)) {
                 return Result.buildFailMessage("订单修改失败，请重新发起成功");
             } else {//修改成功，放入，等待定时任务跑结算
+                ThreadUtil.execute(() -> {//更新风控数据 统计数据等
+                    log.info("更新风控数据，当前订单号：" + order.getOrderId() + "");
+                    DealOrder orderSu = orderServiceImpl.findOrderByOrderId(orderId);
+                    if (orderSu.getOrderStatus().toString().equals(OrderDealStatus.成功.getIndex().toString())) {
+                        riskUtil.orderSu(order);
+                    }
+                    log.info("若为代付订，则置商户代付订单为成功，当前订单号：" + orderSu.getOrderId() + "，当前订单类型：" + orderSu.getOrderType() + "");
+                    if (Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(orderSu.getOrderType().toString())) {
+                        settlementOrderApp(orderSu);//如果是代付订单，商户会瞬间成功
+                    }
+                });
                 return Result.buildSuccessResult("订单修改成功");
             }
         } catch (Exception e) {
@@ -306,6 +317,10 @@ public class OrderUtil {
         } else if (Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(order.getOrderType().toString())) {
             // 商户代付结算
             Withdraw orderWit = withdrawDao.findWitOrder(order.getAssociatedId());
+            if (orderWit.getOrderStatus().equals(2)) {
+                log.info("【当前订单已处理,订单号：" + orderWit.getOrderId() + "】");
+                return Result.buildSuccessMessage("当前订单已处理");
+            }
             orderWit.setComment("确认出款");
             Result result1 = withrawOrderSu1(orderWit);
             //商户代理商结算
@@ -395,7 +410,7 @@ public class OrderUtil {
                     String orderQr = order.getOrderQr();
                     String[] split = orderQr.split(":");
                     String bankAccount = split[2];
-                    mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
+                    mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
                 });
                 transactionTemplate.execute((Result) -> {
                     Result addDeal = amountPublic.addDeal(userFund, new BigDecimal(order.getRetain2()), order.getDealAmount(), order.getOrderId());
@@ -409,6 +424,7 @@ public class OrderUtil {
 
                     return addDealAmount;
                 });
+                bankAccountUtil.agentChannelBankCard(order, Boolean.FALSE, ip);
             } else if (user.getUserType().toString().equals("3")) {
                 ChannelFee channelFee = channelFeeDao.findChannelFee(order.getOrderQrUser(), order.getRetain1());
                 String channelRFee = channelFee.getChannelRFee();

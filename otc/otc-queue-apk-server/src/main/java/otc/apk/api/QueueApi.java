@@ -3,10 +3,8 @@ package otc.apk.api;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import otc.apk.redis.RedisUtil;
 import otc.apk.util.Queue;
 import otc.bean.alipay.FileList;
@@ -45,27 +43,28 @@ public class QueueApi {
 		for (Object obj : array) {
 			log.info("【队列值为：" + obj + "】");
 			lists.add(obj.toString());
-		}
-		return lists;
-	}
+        }
+        return lists;
+    }
 
-	@PostMapping(PayApiConstant.Queue.UPDATA_QR)
-	public void updata(@RequestBody String mediumNumber, @RequestBody FileList file) {
-		log.info("【远程调用队列处理方法-更改队列顺序,当前队列标志：" + file.getAttr() + "】");
-		queueList.updataNode(mediumNumber, file, file.getAttr());
-	}
+    @PostMapping(PayApiConstant.Queue.UPDATA_QR)
+    public void updata(@RequestBody String mediumNumber, @RequestBody FileList file) {
+        log.info("【远程调用队列处理方法-更改队列顺序,当前队列标志：" + file.getAttr() + "】");
+        queueList.updataNode(mediumNumber, file, file.getAttr());
+    }
 
-	@PostMapping(PayApiConstant.Queue.UPDATA_BANK)
-	public void updataBank(@RequestBody String mediumNumber, @RequestBody Medium medium) {
-		log.info("【远程调用队列处理方法-更改队列顺序,当前队列标志：" + medium.getAttr() + "】");
-		queueList.updataBankNode(mediumNumber, medium, medium.getAttr());
-	}
+    @PostMapping(value = PayApiConstant.Queue.UPDATA_BANK)
+    public Result updataBank(@RequestBody(required = false) Medium medium) {
+        log.info("【远程调用队列处理方法-更改队列顺序,当前队列标志：" + medium.getAttr() + "】");
+        queueList.updataBankNode(medium.getMediumNumber(), medium, medium.getAttr());
+        return Result.buildSuccess();
+    }
 
-	@PostMapping(PayApiConstant.Queue.ADD_QR)
-	public Result addQueue(@RequestBody Medium medium) {
-		log.info("【远程调用参数：" + medium.toString() + "】");
-		boolean addNode = queueList.addNode(medium.getMediumNumber(), medium.getAttr());
-		if (addNode) {
+    @PostMapping(PayApiConstant.Queue.ADD_QR)
+    public Result addQueue(@RequestBody Medium medium) {
+        log.info("【远程调用参数：" + medium.toString() + "】");
+        boolean addNode = queueList.addNode(medium.getMediumNumber(), medium.getAttr());
+        if (addNode) {
 			String md5 = RSAUtils.md5(DATA_QUEUE_HASH + medium.getMediumNumber());
 			redisUtil.hset(DATA_QUEUE_HASH, md5, medium, 259200);//本地收款媒介缓存数据会缓存三天			
 			return Result.buildSuccess();

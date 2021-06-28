@@ -72,9 +72,12 @@ public interface MediumMapper {
     List<Medium> findBankByAmountAndAttr(@Param("code") List<String> code);
 
 
-    @Update("update alipay_medium set mountNow - #{dealAmount} where mediumNumber = #{bankAccount} ")
+    @Update("update alipay_medium set mountNow = mountNow - #{dealAmount} where mediumNumber = #{bankAccount} ")
     void subMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount);
 
     @Update("update alipay_medium set  mountNow = mountNow + #{dealAmount} , mountSystem = mountSystem + #{dealAmount}   where mediumNumber = #{bankAccount} ")
     void addMountNow(String bankAccount, BigDecimal dealAmount);
+
+    @Select("select * from alipay_medium where   mediumNumber = #{cardInfo}  and  qrcodeId = #{userId}")
+    Medium findMediumByBankAndId(@Param("cardInfo") String cardInfo, @Param("userId") String userId);
 }

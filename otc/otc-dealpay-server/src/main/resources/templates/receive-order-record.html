@@ -45,7 +45,9 @@
 					<div class="form-details-item">
 						<label>状态:</label> <span class="form-details-item-highlight">
 						{{
-						myReceiveOrderRecord.orderStatus == '2' ?'成功': myReceiveOrderRecord.orderStatus == 1 ? '处理中':myReceiveOrderRecord.orderStatus == 3 ?'未收到回调':'其他'
+							myReceiveOrderRecord.orderStatus == '2' ? '成功' :
+									myReceiveOrderRecord.orderStatus == 1 ? '处理中' :
+											myReceiveOrderRecord.orderStatus == 3 ? '未收到回调' : '其他'
 						}}
 						</span>
 						<template v-if="myReceiveOrderRecord.orderState == '2'"> <label>奖励金:</label> 

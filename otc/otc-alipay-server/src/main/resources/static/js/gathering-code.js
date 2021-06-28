@@ -104,6 +104,19 @@ var gatheringCodeVM = new Vue({
 					{mediumCode: 'ICBC', mediumName: '工商银行'},
 					{mediumCode: 'ABC', mediumName: '农业银行'},
 					{mediumCode: 'CMB', mediumName: '招商银行'},
+					{mediumCode: 'BOC', mediumName: '中国银行'},
+					{mediumCode: 'CMBC', mediumName: '中国民生银行'},
+					{mediumCode: 'CIB', mediumName: '兴业银行'},
+					{mediumCode: 'BJBANK', mediumName: '北京银行'},
+					{mediumCode: 'COMM', mediumName: '交通银行'},
+					{mediumCode: 'CEB', mediumName: '中国光大银行'},
+					{mediumCode: 'SPABANK', mediumName: '平安银行'},
+					{mediumCode: 'CITIC', mediumName: '中信银行'},
+					{mediumCode: 'HXBANK', mediumName: '华夏银行'},
+					{mediumCode: 'GCB', mediumName: '广州银行'},
+					{mediumCode: 'SPDB', mediumName: '上海浦东发展银行'},
+					{mediumCode: 'GDB', mediumName: '广东发展银行'},
+					{mediumCode: 'HXBANK', mediumName: '华夏银行'}
 				]
 				this.mediumDictBankTypeItems = [
 					{mediumCode: 'W', mediumName: '出款卡'},

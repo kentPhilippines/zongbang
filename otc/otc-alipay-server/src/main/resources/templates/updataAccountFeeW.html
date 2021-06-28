@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <title>修改下级费率</title>
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+    <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+    <script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+    <script src="/static/js/common/common.js"></script>
+    <link href="/static/css/common/common.css" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        .form-control {
+            width: 299px;
+        }
+    </style>
+    <div id="updataAccountFee" v-cloak>
+        <div class="form-group">
+            <!-- <div class="form-details-item">
+                 <select class="form-control" style="width: 7.2rem; height: 2.5rem;" v-model="accountChangeTypeCode">
+                    <option value="">产品类型</option>
+                    <option v-for="dictItem in accountChangeTypeDictItems" :value="dictItem.productId">
+                    {{dictItem.productName}}
+                    </option>
+                </select>
+             </div>-->
+            <div class="form-details-item">
+                <label>账号</label>
+                <input class="form-control" placeholder="请输入账号" type="text" v-model="accountName">
+            </div>
+            <div class="form-details-item">
+                <label>费率</label>
+                <span>允许区间   {{agentFee}}   -   {{isfee}}</span>
+                <input class="form-control" placeholder="请输入费率" type="text" v-model="fee">
+            </div>
+
+            <button class="btn btn-outline-info btn-lg"
+                    style="margin: 0.2rem 0.2rem 0.2rem 0.2rem;  width: 7rem; height: 3rem;" type="button"
+                    v-on:click="updataAgentFee()"><span>确认修改</span></button>
+            <button class="btn btn-outline-info btn-lg"
+                    style="margin: 0.2rem 0.2rem 0.2rem 0.2rem;  width: 7rem; height: 3rem;" type="button"
+                    v-on:click="closeAll()"><span>关闭</span></button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var updataAccountFeeVM = new Vue({
+            el: '#updataAccountFee',
+            data: {
+                fee: '',
+                accountId: '',
+                type: '',
+                accountName: '',
+                agentFee: '',
+                isfee: '',
+                accountChangeTypeCode: '',
+                accountChangeTypeDictItems: []
+            },
+            computed: {},
+            created: function () {
+            },
+            mounted: function () {
+                var accountId = getQueryString('accountId');
+                var type = getQueryString('type');
+                this.accountId = accountId;
+                this.type = type;
+                debugger;
+                this.findAllproduct();
+                this.findUserByAccountId();
+                this.getUserAccountInfo();
+            },
+            methods: {
+                findAllproduct: function () {
+                    that = this;
+                    that.$http.post('/recharge/findEnabledPayType').then(function (res) {
+                        that.accountChangeTypeDictItems = res.body.result;
+                    });
+                },
+                findUserByAccountId: function () {
+                    that = this;
+                    that.$http.post('/userAccount/findUserByAccountId', {
+                        userId: that.accountId,
+                        type: 2
+                    }, {emulateJSON: true})
+                        .then(function (res) {
+                            that.fee = res.body.result.fee;
+                            that.accountName = res.body.result.userName
+                            that.accountChangeTypeCode = res.body.result.productId;
+                        });
+                },
+                getUserAccountInfo: function () {
+                    var that = this;
+                    that.$http
+                        .get('/userAccount/getUserAccountInfo')
+                        .then(
+                            function (res) {
+                                if (res.body.result != null) {
+                                    that.agentFee = res.body.result.fee;
+                                    that.isfee = that.fee;
+                                }
+                            });
+                },
+                getQueryString: function (name) {
+                    var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+                    var r = window.location.search.substr(1).match(reg);
+                    if (r != null)
+                        return unescape(r[2]);
+                    return null;
+                },
+                closeAll: function () {
+                    parent.layer.closeAll();
+                },
+                updataAgentFee: function () {
+                    var that = this;
+                    that.$http.post('/userAccount/updataAgentFee', {
+                        fee: that.fee,
+                        userId: that.accountId,
+                        payTypr: that.accountChangeTypeCode
+                    }, {emulateJSON: true})
+                        .then(function (res) {
+                            if (res.body.success) {
+                                layer.msg(res.body.message)
+                                parent.layer.closeAll();
+                            } else {
+                                layer.msg(res.body.message)
+                            }
+                        });
+                }
+            }
+        });
+    </script>

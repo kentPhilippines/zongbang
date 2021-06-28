@@ -20,14 +20,14 @@
 </style>
 <div id="updataAccountFee" v-cloak>
 <div class="form-group">
-	 <div class="form-details-item">
+	<!-- <div class="form-details-item">
 	 	<select class="form-control" style="width: 7.2rem; height: 2.5rem;" v-model="accountChangeTypeCode">
 			<option value="">产品类型</option>
 			<option v-for="dictItem in accountChangeTypeDictItems" :value="dictItem.productId">
 			{{dictItem.productName}}
 			</option>
 		</select>
-	 </div>
+	 </div>-->
 	<div class="form-details-item">
 	 <label>账号</label>
 	 <input type="text" class="form-control" placeholder="请输入账号" v-model="accountName">
@@ -46,20 +46,23 @@
  var updataAccountFeeVM = new Vue({
 		el : '#updataAccountFee',
 		data : {
-			fee : '',
-			accountId : '',
-			accountName : '',
-			agentFee : '',
-			isfee:'',
-			accountChangeTypeCode : '',
-			accountChangeTypeDictItems:[]
+			fee: '',
+			accountId: '',
+			type: '',
+			accountName: '',
+			agentFee: '',
+			isfee: '',
+			accountChangeTypeCode: '',
+			accountChangeTypeDictItems: []
 		},
 		computed : {},
 		created : function() {
 		},
 		mounted : function() {
 			var accountId = getQueryString('accountId');
+			var type = getQueryString('type');
 			this.accountId = accountId;
+			this.type = type;
 			this.findAllproduct();
 			this.findUserByAccountId();
 			this.getUserAccountInfo();
@@ -71,14 +74,17 @@
 					that.accountChangeTypeDictItems = res.body.result;
 				});
 			},
-			findUserByAccountId : function(){
+			findUserByAccountId : function() {
 				that = this;
-				that.$http.post('/userAccount/findUserByAccountId', { userId : that.accountId }, { emulateJSON : true })
-				.then(function(res) {
-					that.fee = res.body.result.fee;
-					that.accountName = res.body.result.userName
-					that.accountChangeTypeCode=res.body.result.productId;
-				});
+				that.$http.post('/userAccount/findUserByAccountId', {
+					userId: that.accountId,
+					type: "1"
+				}, {emulateJSON: true})
+						.then(function (res) {
+							that.fee = res.body.result.fee;
+							that.accountName = res.body.result.userName
+							that.accountChangeTypeCode = res.body.result.productId;
+						});
 			},
 			getUserAccountInfo : function() {
 				var that = this;

@@ -54,6 +54,16 @@ public class UserInfo implements Serializable{
     private Integer enterWitOpen;//0:关闭;1:开启
 
 
+    private String todayProfit;
+
+    public String getTodayProfit() {
+        return todayProfit;
+    }
+
+    public void setTodayProfit(String todayProfit) {
+        this.todayProfit = todayProfit;
+    }
+
     public String getCardFee() {
         return cardFee;
     }

@@ -96,7 +96,7 @@ public interface DealOrderMapper {
 
     @Select("SELECT retain2 , orderId FROM alipay_deal_order WHERE createTime > DATE_ADD(NOW(),INTERVAL -20 MINUTE)  AND orderStatus = 1 AND orderQrUser = 'ChuanShanJia' LIMIT 100")
     List<DealOrder> findXianYuOrder2();
-
+    @CacheEvict(value = ORDER_INFO_CHANNEL, allEntries = true)
     @Update("update alipay_deal_order set orderQr = #{bank} where orderId = #{orderId}")
     int updateBankInfoByOrderId(String bank, String orderId);
 
@@ -153,4 +153,8 @@ public interface DealOrderMapper {
      */
     @Update("update alipay_deal_order set orderStatus = 3 where ( orderType = 1 or orderType = 3  ) and orderStatus = 1  and  createTime <= CURRENT_TIMESTAMP - INTERVAL 10 MINUTE ")
     int updateUnNotify();
+
+    @CacheEvict(value = ORDER_INFO_CHANNEL, allEntries = true)
+    @Update("update alipay_deal_order set payImg = #{qrcodeId} where orderId = #{orderId} ")
+    boolean updatePayImg(@Param("orderId") String orderId, @Param("qrcodeId") String qrcodeId);
 }

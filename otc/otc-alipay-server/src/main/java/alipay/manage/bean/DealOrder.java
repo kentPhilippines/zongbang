@@ -42,8 +42,18 @@ public class DealOrder implements Serializable{
     private String retain3;             //当笔预交易系统分润【未扣除代理商分润】
     private Integer retain4;
     private String Time;
+    private String payImg;                 //卡商代付出款上传付款凭证查看地址
     private String currency;  ///货币类型
     private List orderQrUserList;
+
+
+    public String getPayImg() {
+        return payImg;
+    }
+
+    public void setPayImg(String payImg) {
+        this.payImg = payImg;
+    }
 
     public String getCurrency() {
         return currency;

@@ -67,30 +67,29 @@ public class RiskUtil {
 				}
 				Object object = hmget.get(obj.toString());// 当前金额
 				if (!DateUtil.isExpired(parse, DateField.SECOND,
-						Integer.valueOf(configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.FREEZE_PLAIN_VIRTUAL).getResult().toString()), new Date())) {
-					redisUtil.hdel(user.getUserId(), obj.toString());
-				}
+                        Integer.valueOf(600), new Date())) {
+                    redisUtil.hdel(user.getUserId(), obj.toString());
+                }
 			}
 			return;
 		}
 		Map<Object, Object> hmget = redisUtil.hmget(user.getUserId());
 		Set<Object> keySet = hmget.keySet();
 		for (Object obj : keySet) {
-			String accountId = user.getUserId();
-			int length = accountId.length();
-			String subSuf = StrUtil.subSuf(obj.toString(), length);// 时间戳
-			Date parse = null;
-			try {
-				parse = formatter.parse(subSuf);
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-			Object object = hmget.get(obj.toString());// 当前金额
-			if (!DateUtil.isExpired(parse, DateField.SECOND,
-					Integer.valueOf(configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.FREEZE_PLAIN_VIRTUAL).getResult().toString()), new Date())) {
-				redisUtil.hdel(user.getUserId(), obj.toString());
-			}
-		}
+            String accountId = user.getUserId();
+            int length = accountId.length();
+            String subSuf = StrUtil.subSuf(obj.toString(), length);// 时间戳
+            Date parse = null;
+            try {
+                parse = formatter.parse(subSuf);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            Object object = hmget.get(obj.toString());// 当前金额
+            if (!DateUtil.isExpired(parse, DateField.SECOND, Integer.valueOf(600), new Date())) {
+                redisUtil.hdel(user.getUserId(), obj.toString());
+            }
+        }
 	}
 
 
@@ -154,16 +153,16 @@ public class RiskUtil {
 	 * @return
 	 */
 	boolean updataRedisOrDate(DealOrder qrcodeDealOrder) {
-	//	clearAmount(qrcodeDealOrder);
-	//	updataQr(qrcodeDealOrder);
-		updateCorrelation(qrcodeDealOrder);
-	//	try {
-	//		deleteRedisAmount(qrcodeDealOrder);
-	//	} catch (ParseException e) {
-	//		log.info("解锁订单当前码商订单金额发生异常，当前码商改订单金额解锁失败，解锁时间误差时间为20秒");
-	//	}
-		return true;
-	};
+        clearAmount(qrcodeDealOrder);
+        //	updataQr(qrcodeDealOrder);
+        updateCorrelation(qrcodeDealOrder);
+        //	try {
+        //		deleteRedisAmount(qrcodeDealOrder);
+        //	} catch (ParseException e) {
+        //		log.info("解锁订单当前码商订单金额发生异常，当前码商改订单金额解锁失败，解锁时间误差时间为20秒");
+        //	}
+        return true;
+    };
 	/**
 	 * <p>更新数据统计</p>
 	 */
@@ -177,27 +176,29 @@ public class RiskUtil {
 	 */
 	private void clearAmount(DealOrder qrcodeDealOrder) {
 		redisUtil.del(qrcodeDealOrder.getOrderQr()+qrcodeDealOrder.getDealAmount());
-	}
-	private void updataQr(DealOrder qrcodeDealOrder){
-		Map<Object, Object> hmget = redisUtil.hmget(qrcodeDealOrder.getOrderQr());
-		if(hmget.size() > 0) {//两次锁定二维码   成功解锁
-			Set<Object> keySet = hmget.keySet();
-			for (Object obj : keySet) {
-				redisUtil.hdel(qrcodeDealOrder.getOrderQr(), obj.toString());//二维码三次未收到回调锁定一小时
-			}
-		}
-	}
-	private void deleteRedisAmount(DealOrder qrcodeDealOrder) throws ParseException{
-		Map<Object, Object> hmget2 = redisUtil.hmget(qrcodeDealOrder.getOrderQrUser());
-		if (hmget2.size() <= 0) //成功订单提前解锁金额
-		{
-			return;
-		}
-			Set<Object> keySet = hmget2.keySet();
-			for(Object obj : keySet) {
-				String accountId = qrcodeDealOrder.getOrderQrUser();
-    			int length = accountId.length();
-				String subSuf = StrUtil.subSuf(obj.toString(), length);//时间戳
+    }
+
+    private void updataQr(DealOrder qrcodeDealOrder) {
+        Map<Object, Object> hmget = redisUtil.hmget(qrcodeDealOrder.getOrderQr());
+        if (hmget.size() > 0) {//两次锁定二维码   成功解锁
+            Set<Object> keySet = hmget.keySet();
+            for (Object obj : keySet) {
+                redisUtil.hdel(qrcodeDealOrder.getOrderQr(), obj.toString());//二维码三次未收到回调锁定一小时
+            }
+        }
+    }
+
+    private void w(DealOrder qrcodeDealOrder) throws ParseException {
+        Map<Object, Object> hmget2 = redisUtil.hmget(qrcodeDealOrder.getOrderQrUser());
+        if (hmget2.size() <= 0) //成功订单提前解锁金额
+        {
+            return;
+        }
+        Set<Object> keySet = hmget2.keySet();
+        for (Object obj : keySet) {
+            String accountId = qrcodeDealOrder.getOrderQrUser();
+            int length = accountId.length();
+            String subSuf = StrUtil.subSuf(obj.toString(), length);//时间戳
     			Date parse = formatter.parse(subSuf);
 				if(qrcodeDealOrder.getDealAmount().compareTo(new BigDecimal(hmget2.get(obj.toString()).toString())) == 0  && DateUtils.isTimeScope(20, qrcodeDealOrder.getCreateTime(), parse)) {
 					redisUtil.hdel(qrcodeDealOrder.getOrderQrUser(), obj.toString());

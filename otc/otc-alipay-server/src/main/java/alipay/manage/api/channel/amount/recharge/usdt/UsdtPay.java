@@ -72,7 +72,7 @@ public class UsdtPay extends PayOrderService implements USDT {
              */
             orderServiceImpl.updateBankInfoByOrderId(bank.getBankcardAccount(), orderId);
             //   USDTQrcodeUtil.encode("ethereum:"+bank.getBankcardAccount()+"?decimal=6&value=0",bank.getBankcardAccount());
-            return Result.buildSuccessResult(PAY_URL + "47.242.50.29:32437/pay-usdt?orderId=" + orderId + "&type=" + type);
+            return Result.buildSuccessResult(PAY_URL + "8.209.216.122:32437/pay-usdt?orderId=" + orderId + "&type=" + type);
         }
         return Result.buildFailMessage("暂无可用支付钱包地址");
 

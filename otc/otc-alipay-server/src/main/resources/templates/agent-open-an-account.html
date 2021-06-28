@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>代理开户</title>
+<title>会员开户</title>
 <script src="/static/js/layui/layui.all.js"></script> 
 <link href="/static/js/layui/css/layui.mobile.css" rel="stylesheet" type="text/css"> 
 <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
@@ -34,7 +34,8 @@
 			<div class="container login-container">
 				<form>
 					<div class="form-group">
-						<label>返点</label> <input type="text" class="form-control" placeholder="请设置返点" v-model="rebate">
+						<label>返点</label> <input class="form-control" placeholder="请设置返点 %"
+												 style="display: inline-table; width: 94%" type="text" v-model="rebate"><span>%</span>
 					</div>
 					<div class="form-group">
 						<label>用户名</label> <input type="text" class="form-control" placeholder="请输入账号" v-model="userName">
@@ -80,10 +81,10 @@
 			created : function() {
 			},
 			mounted : function() {
-				headerVM.title = '代理开户';
+				headerVM.title = '会员开户';
 				headerVM.showBackFlag = true;
 				this.getUserAccountInfo();
-			//	this.loadrebateDictItem();
+				//	this.loadrebateDictItem();
 			},
 			methods : {
 

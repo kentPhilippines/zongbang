@@ -130,7 +130,8 @@ public class AccountApiSericeImpl implements AccountApiService {
     	if(password.isSuccess()) {
     		boolean equals = userInfo.getPassword().equals(password.getResult().toString());
     		if(equals) {
-                int a = userInfoDao.updataPassword(user.getUserId(), user.getNewPassword());
+                Result result = HashKit.encodePassword(user.getUserId(), user.getNewPassword(), userInfo.getSalt());
+                int a = userInfoDao.updataPassword(user.getUserId(), result.getResult().toString());
                 if (a > 0 && a < 2) {
                     return Result.buildSuccessMessage("密码修改成功");
                 }
@@ -149,7 +150,8 @@ public class AccountApiSericeImpl implements AccountApiService {
     	if(password.isSuccess()) {
     		boolean equals = userInfo.getPayPasword().equals(password.getResult().toString());
     		if(equals) {
-                int a = userInfoDao.updataPayPassword(user.getUserId(), user.getNewPayPassword());
+                Result result = HashKit.encodePassword(user.getUserId(), user.getNewPayPassword(), userInfo.getSalt());
+                int a = userInfoDao.updataPayPassword(user.getUserId(), result.getResult().toString());
                 if (a > 0 && a < 2) {
                     return Result.buildSuccessMessage("密码修改成功");
                 }

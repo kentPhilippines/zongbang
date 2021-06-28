@@ -24,9 +24,6 @@ public class TaskApi {
 
     @GetMapping(PayApiConstant.Alipay.TASK_API + PayApiConstant.Alipay.TASK_API_USER)
     public Result userTask() {
-        log.info("【开始进行每日账户清算】");
-        userTaskImpl.userAddTask();
-        userTaskImpl.userTask();
         return Result.buildSuccessMessage("账户清算完成");
     }
 

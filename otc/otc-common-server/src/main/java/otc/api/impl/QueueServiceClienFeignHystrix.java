@@ -34,8 +34,8 @@ public class QueueServiceClienFeignHystrix implements QueueServiceClienFeign {
     }
 
 	@Override
-	public void updataNodebank(String mediumNumber, Medium medium) {
-
+	public Result updataNodebank(Medium medium) {
+		return Result.buildFail();
 	}
 
 	@Override

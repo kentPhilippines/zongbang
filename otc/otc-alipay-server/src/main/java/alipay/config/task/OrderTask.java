@@ -1,9 +1,11 @@
 package alipay.config.task;
 
 import alipay.config.redis.RedisUtil;
+import alipay.manage.api.AccountApiService;
 import alipay.manage.api.deal.WitPay;
 import alipay.manage.bean.DealOrder;
 import alipay.manage.bean.RunOrder;
+import alipay.manage.bean.UserInfo;
 import alipay.manage.mapper.DealOrderMapper;
 import alipay.manage.service.RunOrderService;
 import alipay.manage.service.WithdrawService;
@@ -120,38 +122,46 @@ public class OrderTask {
 
 				}
 			} catch (Exception e) {
-				log.info("【异步结算发生异常：" + order.getOrderId() + "】");
-				log.info("【异步结算发生异常：" + e.getMessage() + "】");
-				push("【异步结算发生异常：" + order.getOrderId() + "】");
-			} finally {
-				RedisLockUtil.unLock(KEY_WIT + "lock");
-			}
-		}
+                log.info("【异步结算发生异常：" + order.getOrderId() + "】");
+                log.info("【异步结算发生异常：" + e.getMessage() + "】");
+                push("【异步结算发生异常：" + order.getOrderId() + "】");
+            } finally {
+                RedisLockUtil.unLock(KEY_WIT + "lock");
+            }
+        }
 
 
-	}
+    }
 
-	/**
-	 * 异步推送订单
-	 */
-	public void orderWitTask() {
-		RedisLockUtil.redisLock(KEY_WIT_PUSH + "lock");
-		List<Withdraw> orderList = withdrawServiceImpl.findNotPush();
-		for (Withdraw order : orderList) {
-			if (redis.hasKey(KEY_WIT_PUSH + order.getOrderId())) {
-				log.info("当前订单已处理");
-				continue;
-			}
-			;
-			redis.set(KEY_WIT_PUSH + order.getOrderId(), order.getOrderId(), 200); //防止多个任务同时获取一个订单发起结算
-			try {
-				List<RunOrder> runOrderList = RunOrderServiceimpl.findAssOrder(order.getOrderId());
-				if (CollUtil.isNotEmpty(runOrderList)) {
-					log.info("当前订单已已经结算，且推送，存在异常，请核实");
-					String msg = "当前订单已已经结算，且推送，存在异常，请核实，当前订单号为：" + order.getOrderId();
-					push(msg);
-					withdrawServiceImpl.updatePush(order.getOrderId());//修改为已推送
-					continue;
+    @Autowired
+    private AccountApiService accountApiServiceImpl;
+
+    /**
+     * 异步推送订单
+     */
+    public void orderWitTask() {
+        RedisLockUtil.redisLock(KEY_WIT_PUSH + "lock");
+        List<Withdraw> orderList = withdrawServiceImpl.findNotPush();
+        for (Withdraw order : orderList) {
+            if (redis.hasKey(KEY_WIT_PUSH + order.getOrderId())) {
+                log.info("当前订单已处理");
+                continue;
+            }
+            ;
+            UserInfo userInfo = accountApiServiceImpl.findautoWit(order.getUserId());
+            if (0 == userInfo.getAutoWit()) {
+                log.info("当前订单为手动推送出款,请人工手动审核推送");
+                continue;
+            }
+            redis.set(KEY_WIT_PUSH + order.getOrderId(), order.getOrderId(), 200); //防止多个任务同时获取一个订单发起结算
+            try {
+                List<RunOrder> runOrderList = RunOrderServiceimpl.findAssOrder(order.getOrderId());
+                if (CollUtil.isNotEmpty(runOrderList)) {
+                    log.info("当前订单已已经结算，且推送，存在异常，请核实");
+                    String msg = "当前订单已已经结算，且推送，存在异常，请核实，当前订单号为：" + order.getOrderId();
+                    push(msg);
+                    withdrawServiceImpl.updatePush(order.getOrderId());//修改为已推送
+                    continue;
 				}
 				Result settlement = WitPayImpl.witAutoPush(order);
 			} catch (Exception e) {

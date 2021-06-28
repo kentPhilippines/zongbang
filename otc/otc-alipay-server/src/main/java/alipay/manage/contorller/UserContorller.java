@@ -23,6 +23,7 @@ import otc.result.Result;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -62,6 +63,7 @@ public class UserContorller {
 		UserRate rateW = userRateService.findUserRateWitByUserIdApp(user2.getUserId());
 		user2.setAmount(userFund.getAccountBalance().toString());
 		user2.setFee(rateR.getFee().toString());
+		user2.setTodayProfit(userFund.getTodayProfit().toString());
 		user2.setCardFee(rateW.getFee().toString());
 		return Result.buildSuccessResult(user2);
 	}
@@ -157,15 +159,34 @@ public class UserContorller {
         Result openAgentAccount = accountApiServiceImpl.addAccount(user);
         boolean flag = false;
         if (openAgentAccount.isSuccess()) {
-            flag = inviteCodeServiceImpl.updataInviteCode(user.getInviteCode(), user.getUserId());
+			flag = inviteCodeServiceImpl.updataInviteCode(user.getInviteCode(), user.getUserId());
 			List<UserRate> userFeeList = userRateService.findUserRateInfoByUserId(code.getBelongUser());
-			for( UserRate rate : userFeeList){
-				BigDecimal fee = rate.getFee();
+			List<UserRate> rateList = new ArrayList<>();
+			for (UserRate rate : userFeeList) {
+				/*BigDecimal fee = rate.getFee();
 				String rebate = code.getRebate();
-				BigDecimal myselfFee = new BigDecimal(rebate);
+				BigDecimal myselfFee = new BigDecimal(rebate).multiply(new BigDecimal(100));
 				BigDecimal subtract = fee.subtract(myselfFee);
 				rate.setFee(subtract);
+				rate.setUserId(user.getUserId());*/
+				if (rate.getFeeType().equals(2)) {
+					rate.setFee(new BigDecimal(0));
+					rate.setUserId(user.getUserId());
+					rateList.add(rate);
+					//	userRateService.add(rate);
+					continue;
+				}
+				BigDecimal fee = rate.getFee();//自己的费率
+				String rebate = user.getFee();
+				BigDecimal myselfFee = new BigDecimal(rebate).divide(new BigDecimal(100));//返点汇率
+				if (myselfFee.compareTo(fee) > 0) {
+					return Result.buildFailMessage("开户费率设置失败");
+				}
+				rate.setFee(myselfFee);
 				rate.setUserId(user.getUserId());
+				rateList.add(rate);
+			}
+			for (UserRate rate : rateList) {
 				userRateService.add(rate);
 			}
 		}
@@ -259,38 +280,49 @@ public class UserContorller {
 //		UserInfo qrUser =  accountApiServiceImpl.findUserInfo(id);
 //		return Result.buildSuccessResult(qrUser);
 //	}
-	@PostMapping("/findUserByAccountId")
-	@ResponseBody
-	public Result findUserByAccountId(HttpServletRequest request,String userId) throws ParseException {
-		UserInfo user = sessionUtil.getUser(request);
-		if (ObjectUtil.isNull(user)) {
-			return Result.buildFailMessage("当前用户未登录");
-		}
-		UserRate rateR = null;
-		UserInfo userInfo = accountApiServiceImpl.findUserInfo(userId);
-		Future<UserRate> execAsync3 = ThreadUtil.execAsync(() -> {
+@PostMapping("/findUserByAccountId")
+@ResponseBody
+public Result findUserByAccountId(HttpServletRequest request, String userId, String type) throws ParseException {
+	UserInfo user = sessionUtil.getUser(request);
+	if (ObjectUtil.isNull(user)) {
+		return Result.buildFailMessage("当前用户未登录");
+	}
+	UserRate rateR = null;
+	UserInfo userInfo = accountApiServiceImpl.findUserInfo(userId);
+	Future<UserRate> execAsync3 = ThreadUtil.execAsync(() -> {
+		if ("1".equals(type)) {
 			return userRateService.findUserRateR(userInfo.getUserId());
-		});
+		} else {
+			return userRateService.findUserRateW(userInfo.getUserId());
+		}
+
+	});
 		try {
 			rateR = execAsync3.get();
 		} catch (InterruptedException | ExecutionException e) {
 			return Result.buildFailMessage("错误");
 		}
-		userInfo.setFee(rateR.getFee().toString());
-		userInfo.setProductId(rateR.getPayTypr().toString());
-		return Result.buildSuccessResult(userInfo);
-	}
-	
+	userInfo.setFee(rateR.getFee().toString());
+	userInfo.setProductId(rateR.getPayTypr().toString());
+	return Result.buildSuccessResult(userInfo);
+}
+
 	@GetMapping("/updataAccountFee")
-	public String updataAccountFee(HttpServletRequest request,String accountId)  {
+	public String updataAccountFee(HttpServletRequest request, String accountId) {
 		return "updataAccountFee";
 	}
-	
+
+	@GetMapping("/updataAccountFeeW")
+	public String updataAccountFeeW(HttpServletRequest request, String accountId) {
+		return "updataAccountFeeW";
+	}
+
 	/**
 	 * <p>修改下级代理费率</p>
+	 *
 	 * @param request
-	 * @param accountId			下级账户 id
-	 * @param fee				下级费率
+	 * @param accountId 下级账户 id
+	 * @param fee       下级费率
 	 * @return
 	 */
 	@PostMapping("/updataAgentFee")

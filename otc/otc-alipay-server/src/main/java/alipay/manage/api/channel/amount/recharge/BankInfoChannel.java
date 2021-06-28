@@ -2,9 +2,11 @@ package alipay.manage.api.channel.amount.recharge;
 
 import alipay.manage.api.config.PayOrderService;
 import alipay.manage.bean.DealOrderApp;
+import alipay.manage.bean.util.ResultDeal;
 import alipay.manage.util.bankcardUtil.CreateOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import otc.common.PayApiConstant;
 import otc.result.Result;
 
 
@@ -23,7 +25,8 @@ public class BankInfoChannel extends PayOrderService {
         log.info("【自营渠道返回数据为：" + result.toString() + " 】");
         if (!result.isSuccess()) {
             orderAppEr(dealOrderApp, result.getMessage());
+            return result;
         }
-        return result;
+        return Result.buildSuccessResult("支付处理中", ResultDeal.sendUrl(result.getResult()));
     }
 }

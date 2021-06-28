@@ -117,13 +117,13 @@ public class BankUtil {
             //	Object object = redisUtil.get(qr.getPhone());
             boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
             if (ObjectUtil.isNull(object2) && clickAmount) {
-                redisUtil.set(qr.getMediumPhone() + amount.toString(), orderNo, Integer.valueOf(configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString())); // 核心回调数据
+                redisUtil.set(qr.getMediumPhone() + amount.toString(), orderNo, Integer.valueOf(600)); // 核心回调数据
                 //	redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
-                redisUtil.hset(qr.getQrcodeId(), qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE),
-                        amount.toString());
+				redisUtil.hset(qr.getQrcodeId(), qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE),
+						amount.toString());//虚拟冻结金额
                 // 该风控规则 后期有需求在加    当前媒介 如果超过  X 次未支付， 则对 当前媒介进行锁定			redisUtil.hset(qr.getFileId(), qr.getFileId() + orderNo, orderNo, Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_IS_CLICK).getResult().toString()));
-                queueServiceClienFeignImpl.updataNodebank(qr.getMediumNumber(), qr);
-                log.info("【获取二维码数据：" + qr.toString() + "】");
+				queueServiceClienFeignImpl.updataNodebank(qr);
+				log.info("【获取二维码数据：" + qr.toString() + "】");
 				return qr;
 			}
 		}

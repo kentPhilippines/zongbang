@@ -105,6 +105,9 @@ public class OrderServiceImpl implements OrderService {
         if (StrUtil.isNotBlank(order.getOrderAccount())) {
             criteria.andOrderAccountEqualTo(order.getOrderAccount());
         }
+        if (CollUtil.isNotEmpty(order.getOrderAccountList())) {
+            criteria.andOrderAccountIn(order.getOrderAccountList());
+        }
         List<RunOrder> listRunOrder = runOrderMapper.selectByExample(example);
         log.info("======****======》", listRunOrder);
         return listRunOrder;
@@ -347,5 +350,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Recharge findrecharge(String rechargeId) {
         return null;
+    }
+
+    @Override
+    public boolean updatePayImg(String orderId, String qrcodeId) {
+        return dealOrderMapper.updatePayImg(orderId, qrcodeId);
     }
 }

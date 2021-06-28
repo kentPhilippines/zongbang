@@ -52,14 +52,23 @@ public interface UserRateService {
 
 	/**
 	 * 查询当前账号费率
-	 *
-	 * @param agent
-	 * @param userType
-	 * @param payTypr
-	 * @param feeType
-	 * @return
-	 */
-	UserRate findAgentChannelFee(String agent, Integer userType, String payTypr, Integer feeType);
+     *
+     * @param agent
+     * @param userType
+     * @param payTypr
+     * @param feeType
+     * @return
+     */
+    UserRate findAgentChannelFee(String agent, Integer userType, String payTypr, Integer feeType);
 
-	UserRate findUserRateWitByUserIdApp(String userId);
+    UserRate findUserRateWitByUserIdApp(String userId);
+
+
+    /**
+     * 查询卡商出款费率
+     *
+     * @param userId
+     * @return
+     */
+    UserRate findUserRateW(String userId);
 }

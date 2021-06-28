@@ -562,7 +562,7 @@
   </update>
     <select id="findUserByWeight" resultType="alipay.manage.bean.UserFund">
         select * from alipay_user_fund
-        where userId in
+        where accountBalance > 0 and userId in
         (select userId from
         alipay_user_info where `switchs` = 1
         and receiveOrderState = 1
