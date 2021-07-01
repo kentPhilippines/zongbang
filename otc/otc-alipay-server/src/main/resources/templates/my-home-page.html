@@ -118,21 +118,20 @@
             </div>
 
             <div class="account-info" v-show="isLoggedInFlag">
-               <!-- <div class="user-name">
-                    <div>
-                        <label>{{userName}}</label>
-                    </div>
-                </div> -->
+                <!-- <div class="user-name">
+                     <div>
+                         <label>{{userName}}</label>
+                     </div>
+                 </div> -->
                 <div class="cash-deposit" style="margin-left: 1.2rem;">
-                    <span>可用余额:</span><label>{{cashBalance | numFilter }}</label>
+                    <span>可用余额:</span><label>{{cashDeposit | numFilter }}元</label>
                 </div>
-          <!--   <div class="cash-deposit" style="margin-left: 1.2rem;">
-                    <span>收益:</span><label>{{cashBalance != null ? cashBalance
-                        : 0}}元</label>
-                </div> 
-                <div class="cash-deposit">
-                    <span>费率:</span><label>{{fee != null ? fee*100: 0 | numFilter }}%</label>
-                </div>  -->
+                <div class="cash-deposit" style="margin-left: 1.2rem;">
+                    <span>分润:</span><label>{{cashBalance|numFilter}}元</label>
+                </div>
+                <!--      <div class="cash-deposit">
+                      <span>费率:</span><label>{{fee != null ? fee*100: 0 | numFilter }}%</label>
+                  </div>  -->
                 <div class="personal-info">
                     <label><i class="fa fa-angle-right" aria-hidden="true"
                               v-on:click="footerVM.goTo('/personal-info')"></i></label>
@@ -257,11 +256,12 @@
                                 if (res.body.result != null) {
                                     that.isLoggedInFlag = true;
                                     that.userName = res.body.result.userName;
-                                    that.cashBalance = res.body.result.amount;
-                                    that.todayProfit = res.body.result.todayProfit;
+                                    that.cashDeposit = res.body.result.amount;
+                                    that.cashBalance = res.body.result.QQ;
                                     that.accountType = res.body.result.isAgent;
-/*                                     that.fee = res.body.result.fee;
- */                                    headerVM.title = that.userName + '(' + (60000 + res.body.result.id) + ')';
+                                    /*                                     that.fee = res.body.result.fee;
+                                     */
+                                    headerVM.title = that.userName + '(' + (60000 + res.body.result.id) + ')';
                                 }
                             });
                 },

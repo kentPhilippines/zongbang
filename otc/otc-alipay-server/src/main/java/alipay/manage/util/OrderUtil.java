@@ -315,8 +315,8 @@ public class OrderUtil {
                 return Result.buildSuccessMessage("订单修改成功");
             }
         } else if (Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(order.getOrderType().toString())) {
-            // 商户代付结算
             Withdraw orderWit = withdrawDao.findWitOrder(order.getAssociatedId());
+            // 商户代付结算
             if (orderWit.getOrderStatus().equals(2)) {
                 log.info("【当前订单已处理,订单号：" + orderWit.getOrderId() + "】");
                 return Result.buildSuccessMessage("当前订单已处理");
@@ -610,6 +610,13 @@ public class OrderUtil {
             log.info("【代付手续费冻结失败，当前订单号：" + orderId + "】");
             return witFrzen;
         }
+        if ("2".equals(wit.getWithdrawType()) && "2".equals(wit.getRetain1())) {
+            //当前订单为卡商代付订单，且卡商代付订单提款为 分润提款
+            amountPublic.witBankCardAmount(wit);
+            amountRunUtil.witBankCardAmount(wit);
+        }
+
+
         return Result.buildSuccess();
     }
 
@@ -825,17 +832,19 @@ public class OrderUtil {
          */
         Withdraw witd = wit;
         String userId = wit.getUserId();
-        if (wit.getOrderStatus().equals(Common.Order.Wit.ORDER_STATUS_SU)) {
-            //1，订单成功时候的时候除了退换商户资金还会对渠道账户进行扣款操作
-            //2，对实际出款订单和配置出款订单加加款进行区分
-            if (StrUtil.isNotBlank(witd.getChennelId())) {//配置出款
-                //按照配置的出款费率给渠道退款
-                channelWitEr(witd, witd.getChennelId());
-            } else {//手动推送出款
-                channelWitEr(witd, witd.getWitChannel());
+
+        if (!"2".equals(wit.getWithdrawType())) {
+            if (wit.getOrderStatus().equals(Common.Order.Wit.ORDER_STATUS_SU)) {
+                //1，订单成功时候的时候除了退换商户资金还会对渠道账户进行扣款操作
+                //2，对实际出款订单和配置出款订单加加款进行区分
+                if (StrUtil.isNotBlank(witd.getChennelId())) {//配置出款
+                    //按照配置的出款费率给渠道退款
+                    channelWitEr(witd, witd.getChennelId());
+                } else {//手动推送出款
+                    channelWitEr(witd, witd.getWitChannel());
+                }
             }
         }
-
         int a = withdrawDao.updataOrderStatus1(wit.getOrderId(), wit.getApproval(), wit.getComment(), Common.Order.Wit.ORDER_STATUS_ER);
         if (a == 0 || a > 2) {
             return Result.buildFailMessage("订单状态修改失败");
@@ -843,9 +852,9 @@ public class OrderUtil {
         witd.setUserId(userId);
         UserFund userFund = new UserFund();
         userFund.setUserId(wit.getUserId());
-        Result addTransaction =   transactionTemplate.execute((Result) -> {
-                    Result addAmountAdd = amountPublic.addAmountAdd(userFund, wit.getAmount(), wit.getOrderId());
-                    if (!addAmountAdd.isSuccess()) {
+        Result addTransaction = transactionTemplate.execute((Result) -> {
+            Result addAmountAdd = amountPublic.addAmountAdd(userFund, wit.getAmount(), wit.getOrderId());
+            if (!addAmountAdd.isSuccess()) {
                         return addAmountAdd;
                     }
                     Result addAmountW = amountRunUtil.addAmountW(wit, ip);
@@ -862,15 +871,28 @@ public class OrderUtil {
                     if (!result.isSuccess()) {
                         return result;
                     }
-                    Result result1 = amountRunUtil.addAmountWFee(wit, ip);
-                    if (!result1.isSuccess()) {
-                        return result1;
-                    }
-                    return result1;
-                });
-        if(!addFeeTransaction.isSuccess()){
-            return  addFeeTransaction;
+            Result result1 = amountRunUtil.addAmountWFee(wit, ip);
+            if (!result1.isSuccess()) {
+                return result1;
+            }
+            return result1;
+        });
+        if (!addFeeTransaction.isSuccess()) {
+            return addFeeTransaction;
         }
+
+        if ("2".equals(wit.getWithdrawType())) {//卡商佣金退回
+            Result result = amountPublic.addBankprofit(wit);
+            if (!result.isSuccess()) {
+                return result;
+            }
+            Result result1 = amountRunUtil.addBankprofit(wit);
+            if (!result1.isSuccess()) {
+                return result1;
+            }
+        }
+
+
         notifyUtil.wit(wit.getOrderId());
         return Result.buildSuccessMessage("代付金额解冻成功");
     }

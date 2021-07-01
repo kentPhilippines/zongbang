@@ -169,7 +169,8 @@ public class RechargeContorller {
    private static final String BANK_NO = "BANK_NO";
    private static final String AMOUNT = "AMOUNT";
    private static final String MONEY_PWD = "MONEY_PWD";
-   private static final String MOBILE = "MOBILE";
+	private static final String TYPE = "TYPE";
+	private static final String MOBILE = "MOBILE";
     @PostMapping("/startWithdraw")
 	@ResponseBody
 	@LogMonitor(required = true)//登录放开
@@ -205,6 +206,7 @@ public class RechargeContorller {
 		map.put(USER_ID, user.getUserId());
 		map.put(MOBILE, mobile);
 		map.put(MONEY_PWD, moneyPwd);
+		map.put(TYPE, type);
 		Result clickWithdraw = isClickWithdraw(map);
 		if (!clickWithdraw.isSuccess()) {
 			return clickWithdraw;
@@ -243,10 +245,18 @@ public class RechargeContorller {
 	   if (!userInfo.getPayPasword().equals(password.getResult().toString())) {
 		   return Result.buildFailResult("资金密码错误；");
 	   }
-	   BigDecimal balance = userFund.getAccountBalance();
-	   BigDecimal amount = new BigDecimal(map.get(AMOUNT).toString());
-	   if (balance.compareTo(amount.add(new BigDecimal("2"))) == -1) {
-		   return Result.buildFailResult("当前金额不足，请重新");
+	   if ("1".equals(map.get(TYPE))) {
+		   BigDecimal balance = userFund.getAccountBalance();
+		   BigDecimal amount = new BigDecimal(map.get(AMOUNT).toString());
+		   if (balance.compareTo(amount.add(new BigDecimal("2"))) == -1) {
+			   return Result.buildFailResult("当前金额不足，请重新");
+		   }
+	   } else {
+		   BigDecimal balance = userFund.getSumProfit();
+		   BigDecimal amount = new BigDecimal(map.get(AMOUNT).toString());
+		   if (balance.compareTo(amount.add(new BigDecimal("2"))) == -1) {
+			   return Result.buildFailResult("当前分润不足，请重新");
+		   }
 	   }
 	   return Result.buildSuccessResult();
    }
@@ -267,7 +277,7 @@ public class RechargeContorller {
 	   wit.setWithdrawType(Common.Order.Wit.WIT_QR);
 	   wit.setActualAmount(new BigDecimal(map.get(AMOUNT).toString()));
 	   wit.setRetain2(ip);
-	   wit.setRetain1(Common.Order.Wit.WIT_TYPE_CLI);
+	   wit.setRetain1(map.get(TYPE));
 	   Future<UserInfo> execAsync = ThreadUtil.execAsync(() -> {
 		   String findAgent = correlationServiceImpl.findAgent(map.get(USER_ID).toString());
 		   return userInfoServiceImpl.findUserInfoByUserId(findAgent);

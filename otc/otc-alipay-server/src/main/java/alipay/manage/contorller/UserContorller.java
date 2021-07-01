@@ -64,6 +64,7 @@ public class UserContorller {
 		user2.setAmount(userFund.getAccountBalance().toString());
 		user2.setFee(rateR.getFee().toString());
 		user2.setTodayProfit(userFund.getTodayProfit().toString());
+		user2.setQQ(userFund.getSumProfit().toString());
 		user2.setCardFee(rateW.getFee().toString());
 		return Result.buildSuccessResult(user2);
 	}
@@ -177,7 +178,7 @@ public class UserContorller {
 					continue;
 				}
 				BigDecimal fee = rate.getFee();//自己的费率
-				String rebate = user.getFee();
+				String rebate = code.getRebate();
 				BigDecimal myselfFee = new BigDecimal(rebate).divide(new BigDecimal(100));//返点汇率
 				if (myselfFee.compareTo(fee) > 0) {
 					return Result.buildFailMessage("开户费率设置失败");
@@ -413,7 +414,6 @@ public Result findUserByAccountId(HttpServletRequest request, String userId, Str
 
 	/**
 	 * <p>收款接单关闭</p>
-	 *
 	 * @param request
 	 * @return
 	 */

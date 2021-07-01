@@ -29,7 +29,7 @@ public class Withdraw implements Serializable {
     private Date createTime;
     private Date submitTime;
     private Integer status;
-    private String retain1;    //1  api   代付   				2  后台代付
+    private String retain1;    //1  api   代付   				2  后台代付                 1 卡商余额提现，2卡商分润提现
     private String retain2;        //代付 ip
     private String Time;
     private String witType;//  代付产品类型

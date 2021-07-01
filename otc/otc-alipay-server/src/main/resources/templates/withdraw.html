@@ -67,18 +67,20 @@
 				<div class="row">
 					<div class="col-sm-9 offset-sm-3 withdraw-form-item withdraw-form-highlight-item">
 						<label>余额</label> <span>{{cashDeposit}}</span>元
+						<label>累计分润</label> <span>{{profit}}</span>元
 					</div>
 				</div>
-				<!-- <div class="row">
+				<div class="row">
 					<div class="col-sm-9 offset-sm-3 withdraw-form-item withdraw-form-highlight-item">
 						<label>提现类型</label>
-						<select class="form-control" style="width: 6.2rem; height: 3rem;display: inline; " v-model="type">
+						<select class="form-control" style="width: 6.2rem; height: 3rem;display: inline; "
+								v-model="type">
 							<option value="">请选择</option>
 							<option :value="1">余额</option>
 							<option :value="2">分润</option>
-						</select> 
-						</div>
-				</div>  -->
+						</select>
+					</div>
+				</div>
 				<div class="row">
 					<div class="col-sm-9 offset-sm-3 withdraw-form-item">
 						<label>提现金额</label> <span><input type="number" class="withdraw-amount-input-item" v-model="withdrawAmount"></span>元
@@ -111,14 +113,15 @@
 		var withdrawVM = new Vue({
 			el : '#withdraw',
 			data : {
-				bankInfo : '',
-				cashDeposit : '',
-				withdrawAmount : '',
-				moneyPwd : '',
-				type : '',
-				Fcash : '',
-				cash : '',
-				mobile : '' 
+				bankInfo: '',
+				cashDeposit: '',
+				profit: '',
+				withdrawAmount: '',
+				moneyPwd: '',
+				type: '',
+				Fcash: '',
+				cash: '',
+				mobile: ''
 			},
 			computed : {},
 			created : function() {
@@ -147,6 +150,7 @@
 					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
 						if (res.body.result != null) {
 							that.cashDeposit = res.body.result.amount;
+							that.profit = res.body.result.QQ;
 						}
 					});
 				},
@@ -170,18 +174,22 @@
 						layer.alert('请输入资金密码');
 						return;
 					}
+					if (that.type == null || that.type == '') {
+						layer.alert('请选择提现类型');
+						return;
+					}
 					if (that.mobile == null || that.mobile == '') {
 						layer.alert('请输入提现手机号');
 						return;
 					}
 					that.$http.post('/recharge/startWithdraw', {
-						withdrawAmount : that.withdrawAmount,
-						moneyPwd : that.moneyPwd,
-						bankCard : that.bankInfo.openAccountBank,
-						accountHolder : that.bankInfo.accountHolder,
-						bankcardAccount : that.bankInfo.bankcardAccount,
-						mobile : that.mobile
-					/* 	type : that.type */
+						withdrawAmount: that.withdrawAmount,
+						moneyPwd: that.moneyPwd,
+						bankCard: that.bankInfo.openAccountBank,
+						accountHolder: that.bankInfo.accountHolder,
+						bankcardAccount: that.bankInfo.bankcardAccount,
+						mobile: that.mobile,
+						type: that.type
 					}, {
 						emulateJSON : true
 					}).then(function(res) {

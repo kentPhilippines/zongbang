@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import otc.bean.dealpay.Withdraw;
 import otc.result.Result;
 
 import java.math.BigDecimal;
@@ -199,5 +200,20 @@ public class AmountPublic extends Util {
 
     public Result addAmounProfitBank(UserFund userFund, BigDecimal balance, String orderId) {
         return amountConfig.addAmountBalance(userFund, balance, Util.ADD_AMOUNT_PROFIT_BANK, new BigDecimal(0), orderId);
+    }
+
+
+    public void witBankCardAmount(Withdraw orderWit) {
+        UserFund fund = new UserFund();
+        fund.setUserId(orderWit.getUserId());
+        amountConfig.deleteAmountBalance(fund, orderWit.getAmount(), Util.DELETET_BANK_PROFIT, orderWit.getOrderId());
+
+
+    }
+
+    public Result addBankprofit(Withdraw wit) {
+        UserFund fund = new UserFund();
+        fund.setUserId(wit.getUserId());
+        return amountConfig.addAmountBalance(fund, wit.getAmount(), Util.ADD_BANK_PROFIT, new BigDecimal(0), wit.getOrderId());
     }
 }

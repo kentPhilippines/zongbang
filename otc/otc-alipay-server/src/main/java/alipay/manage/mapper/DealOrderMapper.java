@@ -157,4 +157,12 @@ public interface DealOrderMapper {
     @CacheEvict(value = ORDER_INFO_CHANNEL, allEntries = true)
     @Update("update alipay_deal_order set payImg = #{qrcodeId} where orderId = #{orderId} ")
     boolean updatePayImg(@Param("orderId") String orderId, @Param("qrcodeId") String qrcodeId);
+
+    /**
+     * 填充当前订单的回调原始消息
+     *
+     * @param witOrderId
+     * @param toString
+     */
+    void updatePayInfo(String witOrderId, String toString);
 }

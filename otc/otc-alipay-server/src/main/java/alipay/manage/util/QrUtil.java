@@ -116,26 +116,26 @@ public class QrUtil {
 	}
 
 	/**
-	 * <p>
-	 * 获取唯一的订单号,根据支付宝回调
-	 * </p>
-	 * 
-	 * @param bigDecimal
-	 * @param bankPhone
-	 * @return
-	 */
-	public String findOrderBy(BigDecimal amount, String phone) {
-		log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "】");
-		Object object = redisUtil.get(phone + amount.toString());
-		if (ObjectUtil.isNull(object)) {
-			return null;
-		}
-		redisUtil.deleteKey(phone + amount.toString());
-		/**
-		 * <p>
-		 * 对IP解禁
-		 * </p>
-		 * Object IP = redisUtil.get(object.toString()); Set<Object> sGet =
+     * <p>
+     * 获取唯一的订单号,根据支付宝回调
+     * </p>
+     *
+     * @param bigDecimal
+     * @param bankPhone
+     * @return
+     */
+    public String findOrderBy(BigDecimal amount, String phone, String bankId) {
+        log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + " , bankNlo = " + bankId + "】");
+        Object object = redisUtil.get(phone + amount.toString());
+        if (ObjectUtil.isNull(object)) {
+            return null;
+        }
+        redisUtil.deleteKey(phone + amount.toString());
+        /**
+         * <p>
+         * 对IP解禁
+         * </p>
+         * Object IP = redisUtil.get(object.toString()); Set<Object> sGet =
 		 * redisUtil.sGet(IP.toString()); Iterator<Object> iterator = sGet.iterator();
 		 * while (iterator.hasNext()) { Object next = iterator.next();//这是具体值
 		 * redisUtil.setRemove(IP.toString(),next.toString()); }

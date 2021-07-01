@@ -21,9 +21,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import otc.bean.alipay.Medium;
 import otc.bean.dealpay.Withdraw;
 import otc.common.PayApiConstant;
+import otc.common.RedisConstant;
 import otc.result.Result;
+import otc.util.RSAUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,6 +119,8 @@ public class QrcodeContorller {
         return addNode;
     }
 
+    @Autowired
+    private RedisUtil redisUtil;
     @GetMapping("/setBankCard")
     @ResponseBody
     public Result setBankCard(HttpServletRequest request, String bankCard, String orderId) {
@@ -128,15 +133,32 @@ public class QrcodeContorller {
         String mediumHolder = "";
         String account = "";
         String mediumPhone = "";
-        if (StrUtil.isEmpty(order.getOrderQr())) {
+        if (StrUtil.isEmpty(order.getOrderQr())) {// 第一次进入绑定 银行卡， 这个地方需要 验证 银行卡是否在线
             Medium mediumId = mediumServiceImpl.findMediumId(bankCard);
             mediumNumber = mediumId.getMediumNumber();//卡号
             mediumHolder = mediumId.getMediumHolder();//开户人
             account = mediumId.getAccount();//开户行
             mediumPhone = mediumId.getMediumPhone();
             String bankInfo = "";
+
+            String bankCheck = RSAUtils.md5(RedisConstant.Queue.HEARTBEAT + mediumNumber);// 验证银行 卡在线标记
+            boolean hasKey = redisUtil.hasKey(bankCheck);
+            if (hasKey) {
+                return Result.buildFailMessage("当前银行卡未绑定监控，无法出款");
+            }
+            String amount1 = getAmount(order.getDealAmount());
+            String witNotify1 = mediumNumber + mediumPhone + amount1; //验证当前 银行卡是否处于出款状态
+            Object o = redisUtil.get("WIT:" + witNotify1);
+            if (null != o) {
+                return Result.buildFailMessage("当前银行卡 正在出款， 请更换银行卡出款");
+            }
             bankInfo = account + MARK + mediumHolder + MARK + mediumNumber + MARK + "电话" + MARK + mediumPhone;
-            orderServiceImpl.updateBankInfoByOrderId(bankInfo, orderId);
+            boolean b = orderServiceImpl.updateBankInfoByOrderId(bankInfo, orderId);
+            if (b) {
+                String amount = getAmount(order.getDealAmount());
+                String witNotify = mediumNumber + mediumPhone + amount; //代付回调成功 标记
+                redisUtil.set("WIT:" + witNotify, order.getOrderId());
+            }
         } else {
             String[] split = order.getOrderQr().split(MARK);
             mediumNumber = split[2];//卡号
@@ -154,5 +176,26 @@ public class QrcodeContorller {
         cardmap.put("oid_partner", orderId);
         redis.hmset(MARS + orderId, cardmap, 6000);
         return Result.buildSuccessResult(PayApiConstant.Notfiy.OTHER_URL + "/pay?orderId=" + orderId + "&type=203");
+    }
+
+
+    String getAmount(BigDecimal dealAmount) {
+        String amount = "";
+        String[] split = dealAmount.toString().split("\\.");
+        if (split.length == 1) {
+            String s = dealAmount.toString();
+            s += ".0";
+            split = s.split("\\.");
+        }
+        String startAmount = split[0];
+        String endAmount = split[1];
+        int length = endAmount.length();
+        if (length == 1) {//当交易金额为整小数的时候        补充0
+            endAmount += "0";
+        } else if (endAmount.length() > 2) {
+            endAmount = "00";
+        }
+        amount = startAmount + "." + endAmount;//得到正确的金额
+        return amount;
     }
 }

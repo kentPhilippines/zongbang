@@ -71,15 +71,35 @@ public class BankUtil {
      * @throws ParseException
      */
     public Medium findQr(String orderNo, BigDecimal amount, List<String> code, boolean flag) {
-        /**
-         * ######################################## 二维码回调逻辑,以及应该要注意的几个问题
-         * 1,防止出现同一个二维码在10分钟内同时调用 1>解决：在存入时候 先检查是否有相同二维码在缓存内使用 2,回调订单的唯一标识 1>采取策略：金额+手机号
-         * 3,当不满足任意条件的情况 1>选取 使用次数最少 2>选取 金额不一样
-         *
-         * List<String> keyS = new ArrayList<String>(); // Map<String,List<String>> map
-         * = new HashMap<String,List<String>>(); List<QrCode> qrLi = new
-         * ArrayList<QrCode>(); // qrList = shuffle(qrList); for(QrCode qc: qrList)
-         * {//两次风控规则 if(isClickQrCode(qc.getQrcodeId())) { keyS.add(qc.getQrcodeId());
+
+
+		String dealAmount = "";
+		String[] split = amount.toString().split("\\.");
+		if (split.length == 1) {
+			String s = amount.toString();
+			s += ".0";
+			split = s.split("\\.");
+		}
+		String startAmount = split[0];
+		String endAmount = split[1];
+		int length = endAmount.length();
+		if (length == 1) {//当交易金额为整小数的时候        补充0
+			endAmount += "0";
+		} else if (endAmount.length() > 2) {
+			endAmount = "00";
+		}
+		dealAmount = startAmount + "." + endAmount;//得到正确的金额
+
+
+		/**
+		 * ######################################## 二维码回调逻辑,以及应该要注意的几个问题
+		 * 1,防止出现同一个二维码在10分钟内同时调用 1>解决：在存入时候 先检查是否有相同二维码在缓存内使用 2,回调订单的唯一标识 1>采取策略：金额+手机号
+		 * 3,当不满足任意条件的情况 1>选取 使用次数最少 2>选取 金额不一样
+		 *
+		 * List<String> keyS = new ArrayList<String>(); // Map<String,List<String>> map
+		 * = new HashMap<String,List<String>>(); List<QrCode> qrLi = new
+		 * ArrayList<QrCode>(); // qrList = shuffle(qrList); for(QrCode qc: qrList)
+		 * {//两次风控规则 if(isClickQrCode(qc.getQrcodeId())) { keyS.add(qc.getQrcodeId());
          * qrLi.add(qc); } }
 		 */
 		// 根据金额获取符合条件的用户
@@ -103,31 +123,48 @@ public class BankUtil {
 				continue;
 			}
 			Medium qr = qrCollect.get(alipayAccount);// 所属
-            if (ObjectUtil.isNull(qr)) {
-                continue;
-            }
-            log.info("【银行卡数据：" + qr.toString() + "】");
-            UserFund qrcodeUser = usercollect.get(qr.getQrcodeId());// 所属
-            if (ObjectUtil.isNull(qrcodeUser)) {
-                continue;
-            }
-            log.info("【账户数据：" + qrcodeUser.toString() + "】");
-            riskUtil.updataUserAmountRedis(qrcodeUser, flag);
-            Object object2 = redisUtil.get(qr.getMediumPhone() + amount.toString());
-            //	Object object = redisUtil.get(qr.getPhone());
-            boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
-            if (ObjectUtil.isNull(object2) && clickAmount) {
-                redisUtil.set(qr.getMediumPhone() + amount.toString(), orderNo, Integer.valueOf(600)); // 核心回调数据
-                //	redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
-				redisUtil.hset(qr.getQrcodeId(), qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE),
-						amount.toString());//虚拟冻结金额
-                // 该风控规则 后期有需求在加    当前媒介 如果超过  X 次未支付， 则对 当前媒介进行锁定			redisUtil.hset(qr.getFileId(), qr.getFileId() + orderNo, orderNo, Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_IS_CLICK).getResult().toString()));
+			if (ObjectUtil.isNull(qr)) {
+				continue;
+			}
+			log.info("【银行卡数据：" + qr.toString() + "】");
+			UserFund qrcodeUser = usercollect.get(qr.getQrcodeId());// 所属
+			if (ObjectUtil.isNull(qrcodeUser)) {
+				continue;
+			}
+			log.info("【账户数据：" + qrcodeUser.toString() + "】");
+			riskUtil.updataUserAmountRedis(qrcodeUser, flag);
+			String notify = qr.getMediumNumber() + qr.getMediumPhone() + dealAmount.toString();
+			log.info("【核心回调控制数据：" + notify + "】");
+			Object object2 = redisUtil.get(notify);//回调数据
+			//	Object object = redisUtil.get(qr.getPhone());
+			boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
+			if (ObjectUtil.isNull(object2) && clickAmount) {
+				redisUtil.set(notify, orderNo, Integer.valueOf(1200));    //核心回调数据
+				//redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
+				String hashkey = qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE);    //锁定金额数据
+				redisUtil.set("AMOUNT:LOCK:" + orderNo, hashkey, 1200);//金额锁定时间标记     , 如果在20分钟内回调就会删除锁定金额
+				redisUtil.hset(qr.getQrcodeId(), hashkey, dealAmount.toString());//虚拟冻结金额
+				// 该风控规则 后期有需求在加    当前媒介 如果超过  X 次未支付， 则对 当前媒介进行锁定			redisUtil.hset(qr.getFileId(), qr.getFileId() + orderNo, orderNo, Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_IS_CLICK).getResult().toString()));
+				String orderMark = "ORDER:" + qr.getQrcodeId() + ":AUTO";
+				redisUtil.set(orderMark, orderMark, 10);//金额锁定时间标记     , 如果在20分钟内回调就会删除锁定金额
 				queueServiceClienFeignImpl.updataNodebank(qr);
 				log.info("【获取二维码数据：" + qr.toString() + "】");
+				push(qr.getQrcodeId());
 				return qr;
 			}
 		}
 		return null;
+	}
+
+
+	/**
+	 * 推送消息给卡商提示有接单
+	 *
+	 * @param qrcodeId
+	 */
+	private void push(String qrcodeId) {
+
+
 	}
 
 	/**
@@ -137,22 +174,20 @@ public class BankUtil {
 	 *
 	 * @return
 	 */
-	public String findOrderBy(BigDecimal amount, String phone) {
-        log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "】");
-        Object object = redisUtil.get(phone + amount.toString());
-        if (ObjectUtil.isNull(object)) {
-            return null;
-        }
+	public String findOrderBy(String amount, String phone, String bankNo) {
+		log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "，bankNo = " + bankNo + "】");
+		String notify = bankNo + phone + amount.toString();
+		Object object = redisUtil.get(notify);//可以找到即位当前充值订单的关联订单号
+		if (ObjectUtil.isNull(object)) {
+			return null;
+		}
+		/**
+		 * 当前数据是否删除有待商榷
+		 * 如果放开这个数据可能会造成保存支付的问题， 当前数据标记最大话的减少 不按照规定 支付出错的问题
+		 */
+		redisUtil.deleteKey(notify);
 
-        /**
-         * 当前数据是否删除有待商榷
-         * 如果放开这个数据可能会造成保存支付的问题， 当前数据标记最大话的减少 不按照规定 支付出错的问题
-         */
-
-        redisUtil.deleteKey(phone + amount.toString());
-
-
-        /**
+		/**
          * <p>
 		 * 对IP解禁
 		 * </p>

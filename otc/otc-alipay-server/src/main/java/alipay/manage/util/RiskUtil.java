@@ -49,33 +49,35 @@ public class RiskUtil {
 	 * @throws ParseException 时间转换异常
 	 */
 	public void updataUserAmountRedis(UserFund user, boolean flag) {
-		if (flag) {
-			log.info("【顶代账户余额冻结模式】");
-			String findAgent = correlationServiceImpl.findAgent(user.getUserId());
-			log.info("【当前顶代账号为】");
-			Map<Object, Object> hmget = redisUtil.hmget(findAgent);
-			Set<Object> keySet = hmget.keySet();
-			for (Object obj : keySet) {
-				String accountId = user.getUserId();
-				int length = accountId.length();
-				String subSuf = StrUtil.subSuf(obj.toString(), length);// 时间戳
+        log.info("【进入账户金额虚拟冻结更新，当前账户：" + user.getUserId() + "】");
+        if (flag) {
+            log.info("【顶代账户余额冻结模式】");
+            String findAgent = correlationServiceImpl.findAgent(user.getUserId());
+            log.info("【当前顶代账号为】");
+            Map<Object, Object> hmget = redisUtil.hmget(findAgent);
+            Set<Object> keySet = hmget.keySet();
+            for (Object obj : keySet) {
+                String accountId = user.getUserId();
+                int length = accountId.length();
+                String subSuf = StrUtil.subSuf(obj.toString(), length);// 时间戳
 				Date parse = null;
 				try {
 					parse = formatter.parse(subSuf);
 				} catch (ParseException e) {
 					e.printStackTrace();
-				}
-				Object object = hmget.get(obj.toString());// 当前金额
-				if (!DateUtil.isExpired(parse, DateField.SECOND,
-                        Integer.valueOf(600), new Date())) {
+                }
+                Object object = hmget.get(obj.toString());// 当前金额
+                if (!DateUtil.isExpired(parse, DateField.SECOND,
+                        Integer.valueOf(1200), new Date())) {
                     redisUtil.hdel(user.getUserId(), obj.toString());
                 }
-			}
-			return;
-		}
-		Map<Object, Object> hmget = redisUtil.hmget(user.getUserId());
-		Set<Object> keySet = hmget.keySet();
-		for (Object obj : keySet) {
+            }
+            return;
+        }
+        Map<Object, Object> hmget = redisUtil.hmget(user.getUserId());
+        log.info("【当前账户冻结金额 ：" + hmget.toString() + "】");
+        Set<Object> keySet = hmget.keySet();
+        for (Object obj : keySet) {
             String accountId = user.getUserId();
             int length = accountId.length();
             String subSuf = StrUtil.subSuf(obj.toString(), length);// 时间戳
@@ -86,7 +88,7 @@ public class RiskUtil {
                 e.printStackTrace();
             }
             Object object = hmget.get(obj.toString());// 当前金额
-            if (!DateUtil.isExpired(parse, DateField.SECOND, Integer.valueOf(600), new Date())) {
+            if (!DateUtil.isExpired(parse, DateField.SECOND, Integer.valueOf(1200), new Date())) {
                 redisUtil.hdel(user.getUserId(), obj.toString());
             }
         }
@@ -103,37 +105,39 @@ public class RiskUtil {
 	 * @return
 	 */
 	public boolean isClickAmount(String userId, BigDecimal amount2, ConcurrentHashMap<String, UserFund> usercollect, boolean flag) {
-		if (flag) {
-			//获取顶代账号 
-			//发起账户冻结比对
-			log.info("【顶代账户余额冻结模式】");
-			String findAgent = correlationServiceImpl.findAgent(userId);
-			log.info("【当前顶代账号为】");
-			Map<Object, Object> hmget = redisUtil.hmget(findAgent);
-			Set<Object> keySet = hmget.keySet();
-			BigDecimal amount = amount2;
-			for (Object obj : keySet) {
+        log.info("【检查当前账户金额是否满足需求，当前账户：" + userId + "，当前交易金额：" + amount2 + "】");
+        if (flag) {
+            //获取顶代账号
+            //发起账户冻结比对
+            log.info("【顶代账户余额冻结模式】");
+            String findAgent = correlationServiceImpl.findAgent(userId);
+            log.info("【当前顶代账号为】");
+            Map<Object, Object> hmget = redisUtil.hmget(findAgent);
+            Set<Object> keySet = hmget.keySet();
+            BigDecimal amount = amount2;
+            for (Object obj : keySet) {
 				Object object = hmget.get(obj);
-				if (ObjectUtil.isNull(object)) {
-					object = "0";
-				}
-				BigDecimal bigDecimal = new BigDecimal(object.toString());
-				amount = amount.add(bigDecimal);
-			}
-			UserFund user2 = usercollect.get(userId);
-			return amount.compareTo(user2.getAccountBalance()) == -1;
-		}
-		Map<Object, Object> hmget = redisUtil.hmget(userId);
-		Set<Object> keySet = hmget.keySet();
-		BigDecimal amount = amount2;
-		for (Object obj : keySet) {
-			Object object = hmget.get(obj);
-			if (ObjectUtil.isNull(object)) {
-				object = "0";
-			}
-			BigDecimal bigDecimal = new BigDecimal(object.toString());
-			amount = amount.add(bigDecimal);
-		}
+                if (ObjectUtil.isNull(object)) {
+                    object = "0";
+                }
+                BigDecimal bigDecimal = new BigDecimal(object.toString());
+                amount = amount.add(bigDecimal);
+            }
+            UserFund user2 = usercollect.get(userId);
+            return amount.compareTo(user2.getAccountBalance()) == -1;
+        }
+        Map<Object, Object> hmget = redisUtil.hmget(userId);
+        log.info("【当前账户冻结金额 ：" + hmget.toString() + "】");
+        Set<Object> keySet = hmget.keySet();
+        BigDecimal amount = amount2;
+        for (Object obj : keySet) {
+            Object object = hmget.get(obj);
+            if (ObjectUtil.isNull(object)) {
+                object = "0";
+            }
+            BigDecimal bigDecimal = new BigDecimal(object.toString());
+            amount = amount.add(bigDecimal);
+        }
 		UserFund user2 = usercollect.get(userId);
 		return amount.compareTo(user2.getAccountBalance()) == -1;
 	}
@@ -164,18 +168,29 @@ public class RiskUtil {
         return true;
     };
 	/**
-	 * <p>更新数据统计</p>
-	 */
-	private void updateCorrelation(DealOrder qrcodeDealOrder) {
-		log.info("更新数据统计服务");
-		correlationServiceImpl.updateCorrelationDate(qrcodeDealOrder.getOrderId());
-	}
-	/**
-	 * <p>当前订单成功</p>
-	 * @param qrcodeDealOrder
-	 */
-	private void clearAmount(DealOrder qrcodeDealOrder) {
-		redisUtil.del(qrcodeDealOrder.getOrderQr()+qrcodeDealOrder.getDealAmount());
+     * <p>更新数据统计</p>
+     */
+    private void updateCorrelation(DealOrder qrcodeDealOrder) {
+        log.info("更新数据统计服务");
+        correlationServiceImpl.updateCorrelationDate(qrcodeDealOrder.getOrderId());
+    }
+
+    /**
+     * <p>对卡商账户金额进行解冻</p>
+     *
+     * @param order
+     */
+    private void clearAmount(DealOrder order) {
+        try {
+            Object o = redisUtil.get("AMOUNT:LOCK:" + order.getOrderId());//金额标记
+            String orderQrUser = order.getOrderQrUser();
+            redisUtil.hdel(orderQrUser, o);//删除锁定金额
+        } catch (Exception e) {
+            log.info("删除锁定金额失败，当前订单号：" + order.getOrderId());
+        }
+        redisUtil.del(order.getOrderQr() + order.getDealAmount());
+        String orderMark = "ORDER:" + order.getOrderQrUser() + ":AUTO";
+        redisUtil.hdel(orderMark, order.getOrderQrUser());
     }
 
     private void updataQr(DealOrder qrcodeDealOrder) {
@@ -188,7 +203,14 @@ public class RiskUtil {
         }
     }
 
-    private void w(DealOrder qrcodeDealOrder) throws ParseException {
+
+    /**
+     * 解锁金额的老方法
+     *
+     * @param qrcodeDealOrder
+     * @throws ParseException
+     */
+    private void unLockAmount(DealOrder qrcodeDealOrder) throws ParseException {
         Map<Object, Object> hmget2 = redisUtil.hmget(qrcodeDealOrder.getOrderQrUser());
         if (hmget2.size() <= 0) //成功订单提前解锁金额
         {

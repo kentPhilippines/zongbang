@@ -75,6 +75,7 @@ var gatheringCodeVM = new Vue({
 		that.loadGatheringBankCodelDictItem();
 		that.loadMediumsByPage();
 
+
 		$('.gathering-code-pic').on('fileuploaded', function (event, data, previewId, index) {
 			that.qrcodeId = data.response.result.join(',');
 			that.addQrcodeInfoSu();
@@ -115,8 +116,10 @@ var gatheringCodeVM = new Vue({
 					{mediumCode: 'HXBANK', mediumName: '华夏银行'},
 					{mediumCode: 'GCB', mediumName: '广州银行'},
 					{mediumCode: 'SPDB', mediumName: '上海浦东发展银行'},
-					{mediumCode: 'GDB', mediumName: '广东发展银行'},
-					{mediumCode: 'HXBANK', mediumName: '华夏银行'}
+					{mediumCode: 'GLBANK', mediumName: '桂林银行'},
+					{mediumCode: 'HXBANK', mediumName: '华夏银行'},
+					{mediumCode: 'ZHHR', mediumName: '珠海华润银行'},
+					{mediumCode: 'GDNX', mediumName: '广东农信'}
 				]
 				this.mediumDictBankTypeItems = [
 					{mediumCode: 'W', mediumName: '出款卡'},

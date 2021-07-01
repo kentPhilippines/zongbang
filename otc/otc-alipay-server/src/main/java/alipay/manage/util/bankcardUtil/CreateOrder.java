@@ -106,8 +106,21 @@ public class CreateOrder {
                 flag, bankInfo, userFeeId, Boolean.FALSE, wit.getRetain2(), wit.getNotify(), null);
         ThreadUtil.execute(() -> {
             corr(bc, null);
+            if (result.isSuccess()) {
+                push(bankInfoUser);
+            }
         });
         return result;
+    }
+
+
+    /***
+     * 推送消息给卡商提示出款
+     * @param bankInfoUser
+     */
+    private void push(String bankInfoUser) {
+
+
     }
 
     /**

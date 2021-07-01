@@ -103,6 +103,28 @@ public class FinanceApi {
                 }
                 logUtil.addLog(request, "后台人员确认代付订单，当前代付订单号：" + orderId, apply);
                 Withdraw witOrder = withdrawServiceImpl.findOrderId(orderId);
+                if ("2".equals(witOrder.getWithdrawType())) {//卡商提现
+                    String channelId = paramMap.get("channelId").toString();
+                    String witType = paramMap.get("witType").toString();
+                    logger.info("【推送卡商出款渠道：" + channelId + "，推送卡商出款产品：" + witType + "】");
+                    ChannelFee channelFee = channelFeeDao.findChannelFee(channelId, witType);
+                    Result withdraw = Result.buildFail();
+                    try {
+                        withdraw = factoryForStrategy.getStrategy(channelFee.getImpl()).withdraw(witOrder);
+                        ThreadUtil.execute(() -> {
+                            //修改订单为已推送 不管当前订单是否推送成功
+                            boolean b = withdrawServiceImpl.updatePush(witOrder.getOrderId());
+                            if (b) {
+                                logger.info("【当前订单已推送，状态已修改，当前订单号：" + witOrder.getOrderId() + "】");
+                            } else {
+                                logger.info("【当前订单已推送，状态未修改，当前订单号：" + witOrder.getOrderId() + "】");
+                            }
+                        });
+                    } catch (Exception e) {
+                        return Result.buildFailMessage("代付渠道未接通或渠道配置错误，请联系技术人员处理");
+                    }
+                    return withdraw;
+                }
                 String channnel = witOrder.getWitChannel();
                 String witType = witOrder.getWitType();
                 ChannelFee channelFee = channelFeeDao.findChannelFee(channnel, witType);

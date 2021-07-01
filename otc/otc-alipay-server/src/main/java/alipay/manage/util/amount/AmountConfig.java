@@ -85,6 +85,14 @@ public class AmountConfig extends Util {
                         }
                         lockMsg++;
                         log.info("【账户余额添加失败，请查询当前时间范围内的异常情况】");
+                    } else if (ADD_BANK_PROFIT.equals(addType)) {//卡商佣金退回
+                        Result addAmountRecharge = amountPrivate.addBankprofit(userFund, balance);
+                        if (addAmountRecharge.isSuccess()) {
+                            flag = false;
+                            return addAmountRecharge;
+                        }
+                        lockMsg++;
+                        log.info("【账户余额添加失败，请查询当前时间范围内的异常情况】");
                     } else if (WIT_SUCCESSS_STS.equals(addType)) {
                         log.info("【统计代付成功数据】");
                         Result addAmountRecharge = amountPrivate.witSuccessStatis(userFund, balance);
@@ -200,6 +208,13 @@ public class AmountConfig extends Util {
                         log.info("【账户余额添加失败，请查询当前时间范围内的异常情况】");
                     } else if (DELETE_AMOUNT.equals(addType)) {//人工减钱
                         Result deductBalance = amountPrivate.deductBalance(userFund, balance);
+                        if (deductBalance.isSuccess()) {
+                            flag = false;
+                            return deductBalance;
+                        }
+                        log.info("【账户余额添加失败，请查询当前时间范围内的异常情况】");
+                    } else if (DELETET_BANK_PROFIT.equals(addType)) {//卡商利润扣减
+                        Result deductBalance = amountPrivate.deductBalanceProfit(userFund, balance);
                         if (deductBalance.isSuccess()) {
                             flag = false;
                             return deductBalance;

@@ -18,12 +18,12 @@ public class HeartUtil {
 	static DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
 	@Autowired RedisUtil redisUtil;
 	public boolean testHeartbeat( Map<Object, Object> postjson) {
-		log.info("<<<<<进入心跳检测");
-		String MD5 = postjson.get("MD5")+"";
-		boolean set = redisUtil.set(RedisConstant.Queue.HEARTBEAT+MD5, RedisConstant.Queue.HEARTBEAT+df.format(new Date()),60);//设置心跳过期时间1分钟
-		log.info("心跳检测值："+RedisConstant.Queue.HEARTBEAT+MD5+"结果："+set);
-		log.info("心跳检测结束>>>>");
-		return set;
-	}
+        log.info("<<<<<进入心跳检测");
+        String MD5 = postjson.get("MD5") + "";
+        boolean set = redisUtil.set(RedisConstant.Queue.HEARTBEAT + MD5, RedisConstant.Queue.HEARTBEAT + df.format(new Date()), 20);//设置心跳过期时间1分钟
+        log.info("心跳检测值：" + RedisConstant.Queue.HEARTBEAT + MD5 + "结果：" + set);
+        log.info("心跳检测结束>>>>");
+        return set;
+    }
 
 }

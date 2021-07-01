@@ -54,7 +54,6 @@ var auditOrderVM = new Vue({
 		that.loadPlatformOrder();
 		$('.gathering-code-pic').on('fileuploaded', function (event, data, previewId, index) {
 			that.qrcodeId = data.response.result.join(',');
-			debugger;
 			that.addOrderPayImg(that.qrcodeId);
 		});
 	},
@@ -104,7 +103,15 @@ var auditOrderVM = new Vue({
 							orderId: orderId
 						}
 					}).then(function (res) {
-						window.location.href = res.body.result;
+						if (res.body.success) {
+							window.location.href = res.body.result;
+						} else {
+							layer.alert(res.body.message, {
+								icon: 1,
+								time: 2000,
+								shade: false
+							});
+						}
 
 					});
 				}
@@ -115,8 +122,15 @@ var auditOrderVM = new Vue({
 						orderId: orderId
 					}
 				}).then(function (res) {
-					window.location.href = res.body.result;
-
+					if (res.body.success) {
+						window.location.href = res.body.result;
+					} else {
+						layer.alert(res.body.message, {
+							icon: 1,
+							time: 2000,
+							shade: false
+						});
+					}
 				});
 			}
 		},

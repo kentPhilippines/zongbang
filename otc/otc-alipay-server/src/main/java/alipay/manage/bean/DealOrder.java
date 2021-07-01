@@ -43,9 +43,18 @@ public class DealOrder implements Serializable{
     private Integer retain4;
     private String Time;
     private String payImg;                 //卡商代付出款上传付款凭证查看地址
+    private String payInfo;                 //入款或者出款的短信消息
     private String currency;  ///货币类型
     private List orderQrUserList;
 
+
+    public String getPayInfo() {
+        return payInfo;
+    }
+
+    public void setPayInfo(String payInfo) {
+        this.payInfo = payInfo;
+    }
 
     public String getPayImg() {
         return payImg;

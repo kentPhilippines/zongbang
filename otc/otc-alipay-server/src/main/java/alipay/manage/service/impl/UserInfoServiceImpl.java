@@ -217,6 +217,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     public List<UserFund> findUserByAmount(BigDecimal amount, boolean flag) {
+        //只给跑押金一半，将现在接单金额*2 去匹配
+        //   amount = amount.multiply(new BigDecimal(2));
         List<UserFund> findUserByAmount = new ArrayList();
         if (flag) {
             /**

@@ -197,9 +197,9 @@ public class Common {
 		public static final String BANK_NUMBER = "BK";//媒介标签
 	}
 	
-	public static class Notfiy{
-		public static final String ORDER_AMOUNT = "amount";//回调金额
-		public static final String ORDER_PHONE = "phone";//回调设备号
-		public static final String ORDER_ENTER_IP = "orderip";//回调设备号
-	}
+	public static class Notfiy {
+        public static final String ORDER_AMOUNT = "amount";//回调金额
+        public static final String ORDER_PHONE = "phoneId";//回调设备号
+        public static final String ORDER_ENTER_IP = "bankId";//回调设备号
+    }
 }

@@ -720,7 +720,6 @@ public class AmountPrivate extends Util {
 		} else {
 			log.info("【账户修改失败】");
 			ThreadUtil.execute(() -> {
-
 				//TODO 新建线程提交，该线程不受主线程事务控制
 				Boolean updataStatusEr = updateAccountEr(userFund.getUserId());
 				if (updataStatusEr) {
@@ -729,6 +728,64 @@ public class AmountPrivate extends Util {
 			});
 			throw new UserException("账户修改异常", null);
 		}
+		return Result.buildSuccessResult();
+	}
+
+	public Result deductBalanceProfit(UserFund userFund, BigDecimal balance) {
+		log.info("【当前方法为 【卡商分润提现扣减】， ：" + "，当前操作金额为：" + balance + "】");
+		UserInfo userInfo = userInfoServiceImpl.findUserInfoByUserId(userFund.getUserId());
+		if (Common.User.USER_INFO_OFF.equals(userInfo.getSwitchs())) {
+			log.info("【===========【当前账户被标记为禁止使用资金账户功能，请检查该账户存在的交易异常，当前账户为：" + userInfo.getUserId() + "】===========】");
+			//TODO 当前位置除了做运行日志记录和数据日志记录，还应将该处存在的问题推送到系统醒目的地方
+			return Result.buildFailMessage("当前账户被禁止使用资金流水功能，请检查账户是否存在异常");
+		}
+		BigDecimal accountBalance = userFund.getSumProfit();//当前分总金额
+		log.info("【当前分润总金额：" + accountBalance + "，当前扣减金额为：" + balance + "】");
+		accountBalance = accountBalance.subtract(balance);
+		userFund.setSumProfit(accountBalance);
+		Boolean updataAmount = userInfoServiceImpl.updataAmount(userFund);
+		if (updataAmount) {
+		} else {
+			log.info("【账户修改失败】");
+			ThreadUtil.execute(() -> {
+				//TODO 新建线程提交，该线程不受主线程事务控制
+				Boolean updataStatusEr = updateAccountEr(userFund.getUserId());
+				if (updataStatusEr) {
+					log.info("【账户已修改为不可使用，当前账号为：" + userFund.getUserId() + "】");
+				}
+			});
+			throw new UserException("账户修改异常", null);
+		}
+		return Result.buildSuccessResult();
+	}
+
+
+	public Result addBankprofit(UserFund userFund, BigDecimal balance) {
+		log.info("【当前方法为 【卡商分润提现扣减】， ：" + "，当前操作金额为：" + balance + "】");
+		UserInfo userInfo = userInfoServiceImpl.findUserInfoByUserId(userFund.getUserId());
+		if (Common.User.USER_INFO_OFF.equals(userInfo.getSwitchs())) {
+			log.info("【===========【当前账户被标记为禁止使用资金账户功能，请检查该账户存在的交易异常，当前账户为：" + userInfo.getUserId() + "】===========】");
+			//TODO 当前位置除了做运行日志记录和数据日志记录，还应将该处存在的问题推送到系统醒目的地方
+			return Result.buildFailMessage("当前账户被禁止使用资金流水功能，请检查账户是否存在异常");
+		}
+		BigDecimal accountBalance = userFund.getSumProfit();//当前分总金额
+		log.info("【当前分润总金额：" + accountBalance + "，当前扣减金额为：" + balance + "】");
+		accountBalance = accountBalance.add(balance);
+		userFund.setSumProfit(accountBalance);
+		Boolean updataAmount = userInfoServiceImpl.updataAmount(userFund);
+		if (updataAmount) {
+		} else {
+			log.info("【账户修改失败】");
+			ThreadUtil.execute(() -> {
+				//TODO 新建线程提交，该线程不受主线程事务控制
+				Boolean updataStatusEr = updateAccountEr(userFund.getUserId());
+				if (updataStatusEr) {
+					log.info("【账户已修改为不可使用，当前账号为：" + userFund.getUserId() + "】");
+				}
+			});
+			throw new UserException("账户修改异常", null);
+		}
+
 		return Result.buildSuccessResult();
 	}
 }

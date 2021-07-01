@@ -1,5 +1,6 @@
 package alipay.manage.api;
 
+import alipay.config.redis.RedisUtil;
 import alipay.manage.api.config.FactoryForStrategy;
 import alipay.manage.bean.Amount;
 import alipay.manage.bean.ChannelFee;
@@ -15,6 +16,7 @@ import alipay.manage.service.WithdrawService;
 import alipay.manage.util.*;
 import alipay.manage.util.amount.AmountPublic;
 import alipay.manage.util.amount.AmountRunUtil;
+import alipay.manage.util.bankcardUtil.BankUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.thread.ThreadUtil;
@@ -60,7 +62,7 @@ public class Api {
     @Autowired
     OrderUtil orderUtil;
     @Autowired
-    QrUtil qrUtil;
+    BankUtil qrUtil;
     @Autowired
     NotifyUtil notifyUtil;
     @Autowired
@@ -109,11 +111,8 @@ public class Api {
         }
         return withdraw;
     }
-
-
     /**
      * <p>后台调用重新通知的方法</p>
-     *
      * @param request
      * @return
      */
@@ -133,7 +132,6 @@ public class Api {
         log.info("【当前接收到远程调用方法，删除不合格二维码，当前二维码编号：" + fileId + "】");
         fileListServiceImpl.deleteFile(fileId);
     }
-
     ;
 
     @PostMapping(PayApiConstant.File.FILE_API + PayApiConstant.File.OPEN_FILE)
@@ -141,7 +139,6 @@ public class Api {
         log.info("【当前接收到远程调用方法，将二维码标记为以剪裁，二维码编号：" + fileId + "】");
         fileListServiceImpl.updataFileIsCut(fileId);
     }
-
     ;
 
     /**
@@ -156,7 +153,6 @@ public class Api {
         log.info("【返回集合长度：" + fileList.size() + "】");
         return fileList;
     }
-
     ;
 
     /**
@@ -174,8 +170,9 @@ public class Api {
         Result pop = queueUtil.pop(medium);
         return pop;
     }
-
     ;
+    @Autowired
+    private RedisUtil redisUtil;
 
     /**
      * <p>系统回调订单成功资金处理</p>
@@ -184,21 +181,36 @@ public class Api {
      * @return
      */
     @PostMapping(PayApiConstant.Alipay.ORDER_API + PayApiConstant.Alipay.ORDER_ENTER_ORDER_SYSTEM)
-    public Result enterOrderSystem(HashMap<String, Object> paramMap, HttpServletRequest request) {
+    public Result enterOrderSystem(@RequestBody Map<String, Object> paramMap, HttpServletRequest request) {
+        //  外加参数  ； bankId    phoneId   userId
+        //  {"balance":"10.15","bankName":"桂林银行","counterpartyAccountName":"财付通支付","myselfTailNumber":"1565","transactionAmount":"10","transactionDate":"06月25日16:32","transactionType":"income","typeDetail":"收入（代付）"}
+        if (null == paramMap) {
+            return Result.buildFail();
+        }
+        String balance = paramMap.get("balance").toString();//当前卡号余额
+        String bankName = paramMap.get("bankName").toString();//银行卡类型m
+        String counterpartyAccountName = "";
+        if (null != paramMap.get("counterpartyAccountName")) {
+            counterpartyAccountName = paramMap.get("counterpartyAccountName").toString();//交易对手账户名称
+        }
+        String myselfTailNumber = paramMap.get("myselfTailNumber").toString();//我的账号后几位
+        String transactionAmount = paramMap.get("transactionAmount").toString();//转账金额
+        String transactionDate = paramMap.get("transactionDate").toString();//转账时间
+        String transactionType = paramMap.get("transactionType").toString();//  income  转入      expenditure 转出
+        String typeDetail = paramMap.get("typeDetail").toString();//流水类型   收入（代付）
+        String bankId = paramMap.get("bankId").toString();// 抓取到的银行卡号
+        String phoneId = paramMap.get("phoneId").toString();// 抓取到的手机号
+        String userId = paramMap.get("userId").toString();// 抓取到的卡商账号id
+        String originText = paramMap.get("originText").toString();// 短信原始内容
+        String deviceIp = "";//设备ip
         if (MapUtil.isEmpty(paramMap)) {
             return Result.buildFailMessage("未获取到参数");
         }
-        Object obja = paramMap.get(Common.Notfiy.ORDER_AMOUNT);
-        Object objp = paramMap.get(Common.Notfiy.ORDER_PHONE);
-        Object obji = paramMap.get(Common.Notfiy.ORDER_ENTER_IP);
-        if (ObjectUtil.isNull(objp) || ObjectUtil.isNull(obja)) {
-            return Result.buildFailMessage("回调设备号或者金额 为空");
-        }
-        String amount = obja.toString();
-        String phone = objp.toString();
+        String amount = transactionAmount.toString();
+        String phone = phoneId.toString();
         String ip = HttpUtil.getClientIP(request);
-        if (ObjectUtil.isNotNull(obji)) {
-            ip = obji.toString();
+        if (StrUtil.isNotEmpty(deviceIp)) {
+            ip = deviceIp;
         }
         /**
          * ###################################
@@ -211,35 +223,43 @@ public class Api {
          * 如果金额是100.1 或者是  100.20  等
          * 就会被转换为      100    10       100     20
          */
-        String[] split = amount.split("\\.");
-        String startAmount = split[0];
-        String endAmount = split[1];
-        int length = endAmount.length();
-        if (length == 1) {//当交易金额为整小数的时候        补充0
-            endAmount += "0";
-        }
-        amount = startAmount + "." + endAmount;//得到正确的金额
+        amount = getAmount(new BigDecimal(amount));
         log.info("=============【当前回调金额：" + amount + "】============");
-        String associatedId = qrUtil.findOrderBy(new BigDecimal(amount), phone);
-        if (StrUtil.isBlank(associatedId)) {
-            log.info("【商户交易订单失效，或订单匹配不正确】");
-            return Result.buildFailMessage("商户交易订单失效，或订单匹配不正确");
-        }
-        DealOrder order = dealOrderDao.findOrderByAssociatedId(associatedId);
-        if (ObjectUtil.isNull(order)) {
-            log.info("【通过商户订单号无法查询到码商交易订单号，当前交易订单号：" + associatedId + "】");
-            return Result.buildFailMessage("通过商户订单号无法查询到码商交易订单号，当前交易订单号：" + associatedId + "");
-        }
-        Result orderDealSu = orderUtil.orderDealSu(order.getOrderId(), ip);
-        ThreadUtil.execute(() -> {
-            if (orderDealSu.isSuccess()) {
-                notifyUtil.sendMsg(order.getOrderId());
+
+        if (StrUtil.isNotEmpty(transactionType) && transactionType.contains("expenditure")) {
+            //  根据出款的短信匹配卡商的出款订单  将订单标记为已 验证出款短信
+            String witNotify = bankId + phoneId + amount; //验证当前 银行卡是否处于出款状态
+            Object o = redisUtil.get("WIT:" + witNotify);//存在  则存在出款短信对应的订单号
+            if (null != o) {
+                String witOrderId = o.toString();
+                DealOrder witOrder = dealOrderDao.findOrderByOrderId(witOrderId);
+                if (null != witOrder) {
+                    dealOrderDao.updatePayInfo(witOrderId, originText.toString());
+                }
             }
-        });
-        if (!orderDealSu.isSuccess()) {
-            Result.buildFailMessage("回调失败,订单修改失败");
+            return Result.buildSuccessResult("代付出款确认成功", o);
+        } else {
+            String orderId = qrUtil.findOrderBy(amount, phone, bankId);
+            if (StrUtil.isBlank(orderId)) {
+                log.info("【商户交易订单失效，或订单匹配不正确】");
+                return Result.buildFailMessage("商户交易订单失效，或订单匹配不正确");
+            }
+            DealOrder order = dealOrderDao.findOrderByOrderId(orderId);
+            if (ObjectUtil.isNull(order)) {
+                log.info("【通过商户订单号无法查询到码商交易订单号，当前交易订单号：" + orderId + "】");
+                return Result.buildFailMessage("通过商户订单号无法查询到码商交易订单号，当前交易订单号：" + orderId + "");
+            }
+            ThreadUtil.execute(() -> {
+                dealOrderDao.updatePayInfo(order.getOrderId(), paramMap.toString());
+            });
+            Result orderDealSu = orderUtil.orderDealSu(order.getOrderId(), ip);
+            ThreadUtil.execute(() -> {
+                if (orderDealSu.isSuccess()) {
+                    notifyUtil.sendMsg(order.getOrderId());
+                }
+            });
         }
-        return Result.buildSuccessResult("回调成功", order.getOrderId());
+        return Result.buildSuccess();
     }
 
     @PostMapping(PayApiConstant.Alipay.MEDIUM_API + PayApiConstant.Alipay.FIND_MEDIUM_IS_DEAL)
@@ -682,5 +702,25 @@ public class Api {
             }
         }
         return Result.buildFailMessage("操作失败");
+    }
+
+    String getAmount(BigDecimal dealAmount) {
+        String amount = "";
+        String[] split = dealAmount.toString().split("\\.");
+        if (split.length == 1) {
+            String s = dealAmount.toString();
+            s += ".0";
+            split = s.split("\\.");
+        }
+        String startAmount = split[0];
+        String endAmount = split[1];
+        int length = endAmount.length();
+        if (length == 1) {//当交易金额为整小数的时候        补充0
+            endAmount += "0";
+        } else if (endAmount.length() > 2) {
+            endAmount = "00";
+        }
+        amount = startAmount + "." + endAmount;//得到正确的金额
+        return amount;
     }
 }

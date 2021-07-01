@@ -1,5 +1,6 @@
 package alipay.manage.contorller;
 
+import alipay.config.redis.RedisUtil;
 import alipay.manage.bean.DealOrder;
 import alipay.manage.bean.RunOrder;
 import alipay.manage.bean.UserInfo;
@@ -29,6 +30,7 @@ import otc.bean.dealpay.Withdraw;
 import otc.exception.user.UserException;
 import otc.result.Result;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -403,19 +405,37 @@ public class OrderContorller {
 	 */
 	@PostMapping("/userStartAppeal")
 	@ResponseBody
-	public Result userStartAppeal(HttpServletRequest request,String appealType,String actualPayAmount,String userSreenshotIds,String merchantOrderId) {
+	public Result userStartAppeal(HttpServletRequest request, String appealType, String actualPayAmount, String userSreenshotIds, String merchantOrderId) {
 		UserInfo user = sessionUtil.getUser(request);
 		RunOrder order = new RunOrder();
-		if(ObjectUtil.isNull(user)) {
+		if (ObjectUtil.isNull(user)) {
 			return Result.buildFailMessage("当前用户未登录");
 		}
-		return  null;
+		return null;
+	}
+
+	private static final String ORDER_MARK = "ORDER:";
+	private static final String AUTO_MARK = ":AUTO";
+	@Autowired
+	private RedisUtil redisUtil;
+
+	@GetMapping("/findOrder")
+	@ResponseBody
+	public Result findOrder(HttpServletRequest request) {
+		UserInfo user = sessionUtil.getUser(request);
+		RunOrder order = new RunOrder();
+		if (ObjectUtil.isNull(user)) {
+			return Result.buildFailMessage("当前用户未登录");
+		}
+		//	log.info("查询当前是否有接单订单，当前用户："+user.getUserId());
+		String orderMark = ORDER_MARK + user.getUserId() + AUTO_MARK;
+		Object hget = redisUtil.get(orderMark);
+		if (null != hget) {
+			log.info("有订单：" + hget);
+			return Result.buildSuccessMessage("有订单来了，记得处理，亲");
+		}
+		return Result.buildFail();
 	}
 
 
-
-
-
-
-	
 }

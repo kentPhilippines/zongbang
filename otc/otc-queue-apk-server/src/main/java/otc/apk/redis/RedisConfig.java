@@ -55,12 +55,12 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 	@Bean
 	public JedisPool redisPoolFactory() {
-		log.debug("JedisPool注入成功！！");
-		log.debug("redis地址：" + host + ":" + port);
-		JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-		jedisPoolConfig.setMaxIdle(maxIdle);
-		jedisPoolConfig.setMaxWaitMillis(maxWaitMillis);
-		JedisPool jedisPool = new JedisPool(jedisPoolConfig, host, port, timeout, pasword);
+        log.debug("JedisPool注入成功！！");
+        log.debug("redis地址：" + host + ":" + port);
+        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+        jedisPoolConfig.setMaxIdle(maxIdle);
+        jedisPoolConfig.setMaxWaitMillis(maxWaitMillis);
+        JedisPool jedisPool = new JedisPool(jedisPoolConfig, host, port, timeout, pasword);
         return jedisPool;
     }
 

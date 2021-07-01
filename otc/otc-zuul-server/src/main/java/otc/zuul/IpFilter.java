@@ -6,12 +6,12 @@ import cn.hutool.log.LogFactory;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import org.springframework.stereotype.Component;
+import otc.result.Result;
 
 import java.util.Arrays;
 import java.util.List;
 @Component
 public class IpFilter extends ZuulFilter {
-    private List<String> blackIpList = Arrays.asList("127.0.0.1");
     private static final Log log = LogFactory.get();
     public IpFilter() {
         super();
@@ -47,13 +47,15 @@ public class IpFilter extends ZuulFilter {
         RequestContext ctx = RequestContext.getCurrentContext();
         String ip = HttpUtil.getClientIP(ctx.getRequest());
         // 在黑名单中禁用
-        log.info("当前请求ip："+ip+"，当前ip访问的目标方法："+ctx.getRequest().getRequestURL());
-       /* if (StringUtils.isNotBlank(ip) && !blackIpList.contains(ip)) {
-            ctx.setSendZuulResponse(false);*//*拦截请求*//*
-            ctx.setResponseBody(Result.buildFailMessage("非法ip").toJson() );//提示内容
+        log.info("当前请求ip：" + ip + "，当前ip访问的目标方法：" + ctx.getRequest().getRequestURL());
+        StringBuffer requestURL = ctx.getRequest().getRequestURL();
+        String s = requestURL.toString();
+        if (s.contains("/deal/wit") || s.contains("/deal/witCheckAmount")) {
+            ctx.setSendZuulResponse(false);//*拦截请求*//*
+            ctx.setResponseBody(Result.buildFailMessage("权限未开放").toJson());//提示内容
             ctx.getResponse().setContentType("application/json; charset=utf-8");
             return null;
-        }*/
+        }
         return null;
     }
 }

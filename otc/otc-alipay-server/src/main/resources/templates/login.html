@@ -83,24 +83,35 @@
 			mounted : function() {
 				headerVM.title = '登录';
 				this.loadRegisterSetting();
+				//	this.getOrderAutoBroadcast();
+				setInterval(() => {
+					this.getOrderAutoBroadcast();//开启语音订单消息通知
+				}, 3000);
 			},
 			methods : {
-				loadRegisterSetting : function() {
+				loadRegisterSetting: function () {
 					var that = this;
-					that.$http.get('/masterControl/getRegisterSetting').then(function(res) {
+					that.$http.get('/masterControl/getRegisterSetting').then(function (res) {
 						that.registerEnabled = res.body.result.registerEnabled;
 					});
 				},
-				login : function() {
-                    var that = this;
-                    if (that.userName == null || that.userName == '') {
-                        layer.msg('请输入用户名');
-                        return;
-                    }
-                    if (that.password == null || that.password == '') {
-                        layer.msg('请输入密码');
-                        return;
-                    }
+				getOrderAutoBroadcast: function () {
+					this.$http.get('/order/findOrder').then(function (res) {
+						if (res.body.success) {
+							voiceBroadcast(res.body.result);
+						}
+					});
+				},
+				login: function () {
+					var that = this;
+					if (that.userName == null || that.userName == '') {
+						layer.msg('请输入用户名');
+						return;
+					}
+					if (that.password == null || that.password == '') {
+						layer.msg('请输入密码');
+						return;
+					}
                     /*	if (that.googleCode == null || that.googleCode == '') {
                             layer.msg('请输入密码');
                             return;
@@ -113,7 +124,8 @@
                         emulateJSON: true
                     }).then(function (res) {
                         if (res.body.success) {
-                            window.location.href = '/';
+
+							window.location.href = '/';
                         } else {
                             if (!res.body.success && res.body.code == 1) {
                                 console.log(res.body);

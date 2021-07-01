@@ -112,8 +112,17 @@ public class AmountRunUtil {
 
     private static final String PROFIT_AMOUNT_AGENT_BANK_R = "PROFIT_AMOUNT_AGENT_BANK_R";
     private static final Integer PROFIT_AMOUNT_AGENT_BANK_R_NUMBER = 36;
+
+
     private static final String PROFIT_AMOUNT_AGENT_BANK_W = "PROFIT_AMOUNT_AGENT_BANK_W";
     private static final Integer PROFIT_AMOUNT_AGENT_BANK_W_NUMBER = 37;
+
+
+    private static final Integer PROFIT_AMOUNT_BANK_W_NUMBER = 38;//卡商佣金扣减
+    private static final Integer PROFIT_AMOUNT_BANK_R_NUMBER = 39;//卡商佣金增加
+    private static final String PROFIT_AMOUNT_BANK_W = "PROFIT_AMOUNT_BANK_W";
+    private static final String PROFIT_AMOUNT_BANK_R = "PROFIT_AMOUNT_BANK_R";
+
 
     /**
      * <p>码商代付流水生成</p>
@@ -604,6 +613,12 @@ public class AmountRunUtil {
             case PROFIT_AMOUNT_AGENT_BANK_W:
                 runOrderType = PROFIT_AMOUNT_AGENT_BANK_W_NUMBER;
                 break;
+            case PROFIT_AMOUNT_BANK_R:
+                runOrderType = PROFIT_AMOUNT_BANK_R_NUMBER;
+                break;
+            case PROFIT_AMOUNT_BANK_W:
+                runOrderType = PROFIT_AMOUNT_BANK_W_NUMBER;
+                break;
             default:
                 break;
         }
@@ -697,6 +712,23 @@ public class AmountRunUtil {
             return add;
         }
         Result add = add(PROFIT_AMOUNT_AGENT_BANK_W, userId, orderId, amount, ip, "出款，代理分润结算", flag ? RUNTYPE_ARTIFICIAL : RUNTYPE_NATURAL);
+        return add;
+    }
+
+
+    /**
+     * 卡商押金扣减流水生成
+     *
+     * @param orderWit
+     */
+    public void witBankCardAmount(Withdraw orderWit) {
+        Result delete = delete(PROFIT_AMOUNT_BANK_W, orderWit.getUserId(), orderWit.getOrderId(), orderWit.getActualAmount(),
+                orderWit.getRetain2(), "当前卡商佣金扣减，当前扣减佣金为：" + orderWit.getAmount(), RUNTYPE_ARTIFICIAL);
+    }
+
+    public Result addBankprofit(Withdraw wit) {
+
+        Result add = add(PROFIT_AMOUNT_AGENT_BANK_W, wit.getUserId(), wit.getOrderId(), wit.getAmount(), wit.getRetain2(), "当前卡商佣金退回，当前退回佣金为：" + wit.getAmount(), RUNTYPE_ARTIFICIAL);
         return add;
     }
 }
