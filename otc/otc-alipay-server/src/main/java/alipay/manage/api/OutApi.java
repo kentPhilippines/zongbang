@@ -3,6 +3,7 @@ package alipay.manage.api;
 import alipay.config.redis.RedisUtil;
 import alipay.manage.api.feign.QueueServiceClien;
 import alipay.manage.bean.UserInfo;
+import alipay.manage.service.BankListService;
 import alipay.manage.service.MediumService;
 import alipay.manage.service.UserInfoService;
 import alipay.manage.util.QueueUtil;
@@ -54,9 +55,11 @@ public class OutApi {
     }
 
     @Autowired
-    QueueServiceClien queueServiceClienFeignImpl;
+    private QueueServiceClien queueServiceClienFeignImpl;
     @Autowired
-    RedisUtil redisUtil;
+    private RedisUtil redisUtil;
+    @Autowired
+    private MediumService mediumServiceImpl;
 
     /**
      * 通过顶代卡商查询信息
@@ -66,11 +69,33 @@ public class OutApi {
      */
     @RequestMapping("/findQueue")
     public Result findQueue(String cardInfo) {
-        List<BankInfo> list = new ArrayList<>();
-        if (StrUtil.isEmpty(cardInfo)) {
-            List<UserInfo> agentQr = userInfoServiceImpl.findAgentQr();
-            for (UserInfo info : agentQr) {
-                String queueKey = REDISKEY_QUEUE + info.getUserId();
+        try {
+            List<BankInfo> list = new ArrayList<>();
+            Map<String, Medium> medMap = mediumServiceImpl.findBankOpen();
+            if (StrUtil.isEmpty(cardInfo)) {
+                List<UserInfo> agentQr = userInfoServiceImpl.findAgentQr();
+                for (UserInfo info : agentQr) {
+                    String queueKey = REDISKEY_QUEUE + info.getUserId();
+                    log.info("【查询队列数据key：" + queueKey + "】");
+                    LinkedHashSet<ZSetOperations.TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(queueKey, 0, -1);//linkedhashset 保证set集合查询最快
+                    List<ZSetOperations.TypedTuple<Object>> collect = zRangeWithScores.stream().collect(Collectors.toList());
+                    for (ZSetOperations.TypedTuple type : collect) {
+                        Object value = type.getValue();
+                        Double score = type.getScore();
+                        BankInfo bank = new BankInfo();
+                        bank.setBankId(value.toString());
+                        Medium medium = medMap.get(value.toString());
+                        bank.setScore(score);
+                        bank.setGourp(queueKey);
+                        bank.setAmount(medium.getMountNow());
+                        bank.setUserId(medium.getQrcodeId());
+                        bank.setBankAccount(medium.getMediumHolder());
+                        bank.setBankName(medium.getAccount());
+                        list.add(bank);
+                    }
+                }
+            } else {
+                String queueKey = REDISKEY_QUEUE + cardInfo;
                 LinkedHashSet<ZSetOperations.TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(queueKey, 0, -1);//linkedhashset 保证set集合查询最快
                 List<ZSetOperations.TypedTuple<Object>> collect = zRangeWithScores.stream().collect(Collectors.toList());
                 for (ZSetOperations.TypedTuple type : collect) {
@@ -78,30 +103,27 @@ public class OutApi {
                     Double score = type.getScore();
                     BankInfo bank = new BankInfo();
                     bank.setBankId(value.toString());
+                    Medium medium = medMap.get(value.toString());
+                    bank.setUserId(medium.getQrcodeId());
                     bank.setScore(score);
                     bank.setGourp(queueKey);
+                    bank.setAmount(medium.getMountNow());
+                    bank.setBankAccount(medium.getMediumHolder());
+                    bank.setBankName(medium.getAccount());
                     list.add(bank);
                 }
             }
-        } else {
-            String queueKey = REDISKEY_QUEUE + cardInfo;
-            LinkedHashSet<ZSetOperations.TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(queueKey, 0, -1);//linkedhashset 保证set集合查询最快
-            List<ZSetOperations.TypedTuple<Object>> collect = zRangeWithScores.stream().collect(Collectors.toList());
-            for (ZSetOperations.TypedTuple type : collect) {
-                Object value = type.getValue();
-                Double score = type.getScore();
-                BankInfo bank = new BankInfo();
-                bank.setBankId(value.toString());
-                bank.setScore(score);
-                bank.setGourp(queueKey);
-                list.add(bank);
-            }
+            return Result.buildSuccessResult("请求成功", list);
+        } catch (Exception e) {
+            e.getMessage();
         }
-        return Result.buildSuccessResult("请求成功", list);
+        return Result.buildFail();
+
     }
 
     @RequestMapping("/pushCard")
     public Result pushCard(String cardInfo, String userId) {
+
         if (StrUtil.isEmpty(cardInfo)) {
             return Result.buildFailMessage("数据为空");
         }
@@ -143,7 +165,45 @@ public class OutApi {
 class BankInfo {
     private String bankId;
     private String gourp;
+    private String userId;
     private Double score;
+
+
+    private String bankName;            //银行名
+    private String bankAccount;         //银行账号
+    private String amount;         //参考余额
+
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+
+    public String getBankAccount() {
+        return bankAccount;
+    }
+
+    public void setBankAccount(String bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
     public String getGourp() {
         return gourp;

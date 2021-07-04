@@ -406,12 +406,6 @@ public class OrderUtil {
                 return deleteRechangerNumber;
             });
             if (user.getUserType().toString().equals("2")) {
-                ThreadUtil.execute(() -> {
-                    String orderQr = order.getOrderQr();
-                    String[] split = orderQr.split(":");
-                    String bankAccount = split[2];
-                    mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
-                });
                 transactionTemplate.execute((Result) -> {
                     Result addDeal = amountPublic.addDeal(userFund, new BigDecimal(order.getRetain2()), order.getDealAmount(), order.getOrderId());
                     if (!addDeal.isSuccess()) {
@@ -424,7 +418,9 @@ public class OrderUtil {
 
                     return addDealAmount;
                 });
-                bankAccountUtil.agentChannelBankCard(order, Boolean.FALSE, ip);
+                ThreadUtil.execute(() -> {
+                    bankAccountUtil.agentChannelBankCard(order, Boolean.FALSE, ip);
+                });
             } else if (user.getUserType().toString().equals("3")) {
                 ChannelFee channelFee = channelFeeDao.findChannelFee(order.getOrderQrUser(), order.getRetain1());
                 String channelRFee = channelFee.getChannelRFee();

@@ -174,6 +174,9 @@ public class CreateOrder {
         return result;
     }
 
+    @Resource
+    RedisUtil redisUtil;
+
     void corr(String orderId, String BankNo) {
         ThreadUtil.execute(() -> {
             DealOrder order = orderServiceImpl.findOrderByOrderId(orderId);
@@ -335,6 +338,11 @@ public class CreateOrder {
                 order.setDealDescribe("正常出款交易订单");
                 order.setOrderType(Common.Order.ORDER_TYPE_BANKCARD_W.toString());
             }
+
+            String orderMark = "ORDER:" + order.getOrderQrUser() + ":AUTO";
+            redisUtil.set(orderMark, orderMark, 10);//金额锁定时间标记     , 如果在20分钟内回调就会删除锁定金额
+
+
             boolean b = orderServiceImpl.addOrder(order);
             if (b) {
                 return Result.buildSuccess();

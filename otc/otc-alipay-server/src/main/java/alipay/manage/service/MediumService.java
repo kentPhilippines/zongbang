@@ -5,6 +5,7 @@ import otc.bean.alipay.Medium;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public interface MediumService {
     /**
@@ -130,4 +131,14 @@ public interface MediumService {
      * @return
      */
     Medium findMediumByBankAndId(String cardInfo, String userId);
+
+    Medium findBank(String toString);
+
+
+    /**
+     * 查询所有在线的银行卡
+     *
+     * @return
+     */
+    Map<String, Medium> findBankOpen();
 }

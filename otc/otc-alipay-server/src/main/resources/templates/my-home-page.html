@@ -124,7 +124,7 @@
                      </div>
                  </div> -->
                 <div class="cash-deposit" style="margin-left: 1.2rem;">
-                    <span>可用余额:</span><label>{{cashDeposit | numFilter }}元</label>
+                    <span>可用余额:</span><label>{{cashDeposit - cashBalance | numFilter }}元</label>
                 </div>
                 <div class="cash-deposit" style="margin-left: 1.2rem;">
                     <span>分润:</span><label>{{cashBalance|numFilter}}元</label>
@@ -257,7 +257,7 @@
                                     that.isLoggedInFlag = true;
                                     that.userName = res.body.result.userName;
                                     that.cashDeposit = res.body.result.amount;
-                                    that.cashBalance = res.body.result.QQ;
+                                    that.cashBalance = res.body.result.qq;
                                     that.accountType = res.body.result.isAgent;
                                     /*                                     that.fee = res.body.result.fee;
                                      */

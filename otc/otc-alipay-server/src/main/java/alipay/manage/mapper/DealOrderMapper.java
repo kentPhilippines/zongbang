@@ -161,8 +161,9 @@ public interface DealOrderMapper {
     /**
      * 填充当前订单的回调原始消息
      *
-     * @param witOrderId
-     * @param toString
+     * @param orderId
+     * @param payInfo
      */
-    void updatePayInfo(String witOrderId, String toString);
+    @Update("update alipay_deal_order set payInfo = #{payInfo} where orderId = #{orderId} ")
+    void updatePayInfo(@Param("orderId") String orderId, @Param("payInfo") String payInfo);
 }

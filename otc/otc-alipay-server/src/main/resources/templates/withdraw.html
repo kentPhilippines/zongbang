@@ -66,7 +66,7 @@
 				</div>
 				<div class="row">
 					<div class="col-sm-9 offset-sm-3 withdraw-form-item withdraw-form-highlight-item">
-						<label>余额</label> <span>{{cashDeposit}}</span>元
+						<label>余额</label> <span>{{cashDeposit - profit}}</span>元
 						<label>累计分润</label> <span>{{profit}}</span>元
 					</div>
 				</div>
@@ -150,7 +150,7 @@
 					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
 						if (res.body.result != null) {
 							that.cashDeposit = res.body.result.amount;
-							that.profit = res.body.result.QQ;
+							that.profit = res.body.result.qq;
 						}
 					});
 				},
@@ -205,8 +205,18 @@
 									window.location.href = "/my-home-page";
 								}
 							});
-						}else{
-							layer.msg(res.body.message)
+						}else {
+							layer.open({
+								title: '提示',
+								icon: '1',
+								closeBtn: 0,
+								btn: [],
+								content: '已发起提现请求,系统审核通过后会马上为您出款!',
+								time: 2000,
+								end: function () {
+									window.location.href = "/my-home-page";
+								}
+							});
 						}
 					});
 				}

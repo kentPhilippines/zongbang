@@ -34,7 +34,7 @@ import java.util.concurrent.TimeoutException;
 @EnableRedisHttpSession //redis   session 共享
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class AlipayApplication {
-	public static void main(String[] args) throws NoSuchAlgorithmException, KeyManagementException {
+	public static void main(String[] args) {
 		int port = 0;
 		int defaultPort = 9110;
 		Future<Integer> future = ThreadUtil.execAsync(() -> {

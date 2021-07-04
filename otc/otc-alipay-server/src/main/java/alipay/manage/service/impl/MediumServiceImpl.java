@@ -24,9 +24,14 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class MediumServiceImpl implements MediumService {
+
     Logger log = LoggerFactory.getLogger(MediumServiceImpl.class);
     @Resource
     MediumMapper mediumDao;
@@ -205,6 +210,7 @@ public class MediumServiceImpl implements MediumService {
     public boolean selectOpenAlipayAccount(String accountId) {
         return false;
     }
+
     @Override
     public Medium findMediumByMediumNumber(String mediumNumber) {
         MediumExample example =  new MediumExample();
@@ -260,6 +266,19 @@ public class MediumServiceImpl implements MediumService {
     @Override
     public Medium findMediumByBankAndId(String cardInfo, String userId) {
         return mediumDao.findMediumByBankAndId(cardInfo, userId);
+    }
+
+
+    @Override
+    public Medium findBank(String bankInfo) {
+        return mediumDao.findBank(bankInfo);
+    }
+
+    @Override
+    public Map<String, Medium> findBankOpen() {
+        List<Medium> mediumList = mediumDao.findBankOpen();
+        ConcurrentHashMap<String, Medium> qrCollect = mediumList.stream().collect(Collectors.toConcurrentMap(Medium::getMediumNumber, Function.identity(), (o1, o2) -> o1, ConcurrentHashMap::new));
+        return qrCollect;
     }
 
 }

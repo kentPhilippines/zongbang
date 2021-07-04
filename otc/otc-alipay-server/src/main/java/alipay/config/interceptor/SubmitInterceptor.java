@@ -46,8 +46,8 @@ public class SubmitInterceptor extends HandlerInterceptorAdapter {
 		}
 		UserInfo user = sessionUtil.getUser(request);
 		if (!ObjectUtil.isNull(user)) {
-			redisUtil.set(RedisConstant.User.LOGIN_PARENT + user.getUserId(), user.getUserId(), 60 * 5);
-		}
+            redisUtil.set(RedisConstant.User.LOGIN_PARENT + user.getUserId(), user.getUserId(), 30);
+        }
 		if (ObjectUtil.isNull(user)) {
 			response.sendRedirect("/login");
 			return false;

@@ -42,13 +42,6 @@ public class BankAccountUtil {
 
     public Result accountOrderDealChannel(DealOrder order, String ip, Boolean flag) {
         if (order.getOrderType().toString().equals(Common.Order.ORDER_TYPE_BANKCARD_W.toString())) {
-            ThreadUtil.execute(() -> {
-                String orderQr = order.getOrderQr();
-                String[] split = orderQr.split(":");
-                String bankAccount = split[2];
-                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
-            });
-
             //出款订单 卡商结算
             UserInfo channel = userInfoServiceImpl.findUserByOrder(order.getOrderQrUser());
             UserFund userFund = new UserFund();

@@ -62,7 +62,7 @@ public class Api {
     @Autowired
     OrderUtil orderUtil;
     @Autowired
-    BankUtil qrUtil;
+    private BankUtil qrUtil;
     @Autowired
     NotifyUtil notifyUtil;
     @Autowired
@@ -182,6 +182,8 @@ public class Api {
      */
     @PostMapping(PayApiConstant.Alipay.ORDER_API + PayApiConstant.Alipay.ORDER_ENTER_ORDER_SYSTEM)
     public Result enterOrderSystem(@RequestBody Map<String, Object> paramMap, HttpServletRequest request) {
+        log.info("【当前收到自动回调消息为：" + paramMap.toString() + "】");
+
         //  外加参数  ； bankId    phoneId   userId
         //  {"balance":"10.15","bankName":"桂林银行","counterpartyAccountName":"财付通支付","myselfTailNumber":"1565","transactionAmount":"10","transactionDate":"06月25日16:32","transactionType":"income","typeDetail":"收入（代付）"}
         if (null == paramMap) {
@@ -250,7 +252,7 @@ public class Api {
                 return Result.buildFailMessage("通过商户订单号无法查询到码商交易订单号，当前交易订单号：" + orderId + "");
             }
             ThreadUtil.execute(() -> {
-                dealOrderDao.updatePayInfo(order.getOrderId(), paramMap.toString());
+                dealOrderDao.updatePayInfo(order.getOrderId(), originText.toString());
             });
             Result orderDealSu = orderUtil.orderDealSu(order.getOrderId(), ip);
             ThreadUtil.execute(() -> {

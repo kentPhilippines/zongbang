@@ -121,12 +121,14 @@
 				loadAccountChangeTypeDictItem : function() {
 					var that = this;
 						var dir = [
-								{code : 13 , name : '代理商分润'},
-								{code : 12 , name : '交易点数扣除'},
-								{code : 11 , name : '代付'},
-								{code : 1 , name : '交易点充值'},
-								{code : 14 , name : '码商分润'},
-								{code : '' , name : '所有'}
+							{code: 13, name: '代理商分润'},
+							{code: 12, name: '交易点数扣除'},
+							{code: 11, name: '代付'},
+							{code: 1, name: '交易点充值'},
+							{code: 14, name: '分润'},
+							{code: 38, name: '佣金扣减'},
+							{code: 17, name: '手动加钱'},
+							{code: '', name: '所有'}
 						]
 					
 					
@@ -147,6 +149,7 @@
 					this.pageNum = this.pageNum + 1;
 					this.loadByPage();
 				},
+
 
 				loadByPage : function() {
 					var that = this;

@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
         if (StrUtil.isNotBlank(order.getOrderAccount())) {
             criteria.andOrderAccountEqualTo(order.getOrderAccount());
         }
-        if (StrUtil.isNotBlank(String.valueOf(order.getRunOrderType()))) {
+        if (null != order.getRunOrderType()) {
             criteria.andRunOrderTypeEqualTo(order.getRunOrderType());
         }
         if (StrUtil.isNotBlank(order.getTime())) {

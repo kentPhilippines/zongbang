@@ -37,18 +37,18 @@ public class HeartUtil {
 			log.info("【当前检查key ：" + key + "】");
 			LinkedHashSet<TypedTuple<Object>> withScores = redisUtil.zRangeWithScores(key.toString(), 0, -1);
 			for (TypedTuple tuple : withScores) {
-				Object value = tuple.getValue();
-				Double score = tuple.getScore();
-				log.info("【当前队列元素：value：" + value + "，score：" + score + "】");
-				String md52 = RSAUtils.md5(HEARTBEAT + value);//获取心跳数据加密值
-				boolean hasKey = redisUtil.hasKey(md52);//验证媒介是否在心跳数据中
-				if (!hasKey) {//不在的时候 讲该媒介踢出队列
-					Result offMediumQueue = AlipayServiceClienImpl.offMediumQueue(value.toString());
-					if (offMediumQueue.isSuccess()) {
-						log.info("【已将收款媒介：" + value.toString() + "，成功踢出队列】");
-					}
-				}
-			}
+                Object value = tuple.getValue();
+                Double score = tuple.getScore();
+                log.info("【当前队列元素：value：" + value + "，score：" + score + "】");
+                String md52 = RSAUtils.md5(value.toString());//获取心跳数据加密值
+                boolean hasKey = redisUtil.hasKey(HEARTBEAT + md52);//验证媒介是否在心跳数据中
+                if (!hasKey) {//不在的时候 讲该媒介踢出队列
+                    Result offMediumQueue = AlipayServiceClienImpl.offMediumQueue(value.toString());
+                    if (offMediumQueue.isSuccess()) {
+                        log.info("【已将收款媒介：" + value.toString() + "，成功踢出队列】");
+                    }
+                }
+            }
 		}
 		
 	}

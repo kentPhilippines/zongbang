@@ -8,10 +8,8 @@ import java.security.NoSuchAlgorithmException;
 
 public class MD5 {
 	public static void main(String[] args) {
-		String s = HttpUtil.get("https://otc-api-hk.eiijo.cn/v1/data/trade-market?coinId=2&currency=1&tradeType=buy&currPage=1&payMethod=0&acceptOrder=-1&country=&blockType=general&online=1&range=0&amount=&merchantTags=1");
+		String s = md5("6228483499476253472");
 		System.out.println(s);
-
-
 	}
 
 	private static final String UTF_8 = "utf-8";
@@ -34,6 +32,8 @@ public class MD5 {
 			for (int i = 0; i < temp.length; i++)
 				result += Integer.toHexString((0x000000ff & temp[i]) | 0xffffff00).substring(6);
 		} catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+
+
 		}
 		return result;
     }

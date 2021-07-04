@@ -5,12 +5,14 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.springframework.cache.annotation.Cacheable;
 import otc.bean.alipay.Medium;
 
 import java.math.BigDecimal;
 import java.util.List;
 @Mapper
 public interface MediumMapper {
+    static final String MEDIUMBANK = "MEDIUM:BANK";
     int countByExample(MediumExample example);
 
     int deleteByExample(MediumExample example);
@@ -65,7 +67,7 @@ public interface MediumMapper {
     /**
      * 带权重查询当前在线接单媒介
      *
-     * @param amount
+     * @param bankInfo
      * @param code
      * @return
      */
@@ -80,4 +82,17 @@ public interface MediumMapper {
 
     @Select("select * from alipay_medium where   mediumNumber = #{cardInfo}  and  qrcodeId = #{userId}")
     Medium findMediumByBankAndId(@Param("cardInfo") String cardInfo, @Param("userId") String userId);
+
+    @Cacheable(cacheNames = {MEDIUMBANK}, unless = "#result == null")
+    @Select("select * from alipay_medium where   mediumNumber = #{bankInfo} ")
+    Medium findBank(@Param("bankInfo") String bankInfo);
+
+
+    /**
+     * 查询当前开启的媒介数据
+     *
+     * @return
+     */
+    @Select("select * from alipay_medium where  isDeal = 2 and status = 1 ")
+    List<Medium> findBankOpen();
 }
