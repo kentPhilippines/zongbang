@@ -87,10 +87,15 @@ public class AgentContorller {
 				rateList.add(rate);
 				//userRateService.add(rate);
 			}
-			accountApiService.addAccount(user);
-			for (UserRate rate : rateList) {
-				userRateService.add(rate);
+			Result result = accountApiService.addAccount(user);
+			if (result.isSuccess()) {
+				for (UserRate rate : rateList) {
+					userRateService.add(rate);
+				}
+			} else {
+				return result;
 			}
+
 			return Result.buildSuccessMessage("开户成功");
 				/*UserRate rate = new UserRate();
 				rate.setUserId(user.getUserId());
@@ -241,12 +246,14 @@ public class AgentContorller {
 	    	UserCountBean bean = correlationServiceImpl.findMyDateAgen(userId);
 	    	UserCountBean bean1 = correlationServiceImpl.findDealDate(userId);
 	    	if(ObjectUtil.isNotNull(bean1)) {
-	    		bean.setMoreAmountRun(ObjectUtil.isNull(bean1.getMoreAmountRun())?new BigDecimal("0") :  bean1.getMoreAmountRun() );
-	    		bean.setMoreDealCount(ObjectUtil.isNull(bean1.getMoreDealCount())? 0 :  bean1.getMoreDealCount());
-	    	} else {
-	    		bean.setMoreAmountRun(new BigDecimal("0"));
-	    		bean.setMoreDealCount( 0 );
-	    	}
+				bean.setMoreAmountRunR(ObjectUtil.isNull(bean1.getMoreAmountRunR()) ? new BigDecimal("0") : bean1.getMoreAmountRunR());
+				bean.setMoreAmountRunW(ObjectUtil.isNull(bean1.getMoreAmountRunW()) ? new BigDecimal("0") : bean1.getMoreAmountRunW());
+				bean.setMoreDealCount(ObjectUtil.isNull(bean1.getMoreDealCount()) ? 0 : bean1.getMoreDealCount());
+			} else {
+				bean.setMoreAmountRunR(new BigDecimal("0"));
+				bean.setMoreAmountRunW(new BigDecimal("0"));
+				bean.setMoreDealCount(0);
+			}
 			return bean;
 		}
 	    UserInfo findOnline(UserInfo user) {

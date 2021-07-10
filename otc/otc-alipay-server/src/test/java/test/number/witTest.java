@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class witTest {
 	public static void main(String[] args) {
-        for (int a = 0; a <= 1; a++) {
+        for (int a = 0; a <= 0; a++) {
             new witTest().deal();
         }
         //find();

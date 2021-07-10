@@ -237,6 +237,7 @@ public class Api {
                 DealOrder witOrder = dealOrderDao.findOrderByOrderId(witOrderId);
                 if (null != witOrder) {
                     dealOrderDao.updatePayInfo(witOrderId, originText.toString());
+                    redisUtil.deleteKey("WIT:" + witNotify);
                 }
             }
             return Result.buildSuccessResult("代付出款确认成功", o);

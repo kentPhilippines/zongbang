@@ -37,16 +37,17 @@
 			<span style="float: right;">直接下线会员：<strong>{{userAgent}}人</strong></span>  
 			<div>
 				<span>多级下线：<strong>{{moreAgent}}人</strong></span>
-				<span style="float: right;">多级流水：<strong>{{moreAmountRun | numFilter}}元</strong></span>
+				<span style="float: right;">多级入款：<strong>{{moreAmountRunR | numFilter}}元</strong></span>
 			</div>
 		  	<div>
 				<span>多级下线代理：<strong>{{userAgentCount}}人</strong></span>
 				<span style="float: right;">多级会员：<strong>{{userCount}}人</strong></span>
 			</div>
-			<div>
-				<span>多级交易：<strong>{{moreDealCount}}笔</strong></span>
-				<span style="float: right;">多级返佣：<strong>{{moreDealProfit | numFilter}}元</strong></span>
-			</div>  
+				<div>
+					<!--	<span>多级交易：<strong>{{moreDealCount}}笔</strong></span>-->
+					<span>多级出款：<strong>{{moreAmountRunW}}笔</strong></span>
+					<span style="float: right;">多级返佣：<strong>{{moreDealProfit | numFilter}}元</strong></span>
+				</div>
 			</div>
 			<div class="form-details" v-for="account in accounts">
 				<div class="form-details-body">
@@ -113,19 +114,20 @@
 		var lowerLevelAccountManageVM = new Vue({
 			el : '#lowerLevelAccountManage',
 			data : {
-				queryScope : '20',
-				userName : '',
-				accounts : [],
-				pageNum : 1,
-				totalPage : 1,
-				userCount : '',
+				queryScope: '20',
+				userName: '',
+				accounts: [],
+				pageNum: 1,
+				totalPage: 1,
+				userCount: '',
 				userAgentCount: '',
-				moreAgent : '',
-				moreAmountRun : '',
-				moreDealCount : '',
-				moreDealProfit : '',
-				agent : '',
-				userAgent : ''
+				moreAgent: '',
+				moreAmountRunR: '',
+				moreAmountRunW: '',
+				moreDealCount: '',
+				moreDealProfit: '',
+				agent: '',
+				userAgent: ''
 			},
 			filters: { 
 				numFilter (value) {
@@ -215,10 +217,11 @@
 				},
 				findAgentCount : function(){
 					var that = this;
-					that.$http.get('/agent/findAgentCount' ).then(function(res){
+					that.$http.get('/agent/findAgentCount' ).then(function(res) {
 						that.userCount = res.body.result.userCount;
 						that.userAgentCount = res.body.result.userAgentCount;
-						that.moreAmountRun = res.body.result.moreAmountRun;
+						that.moreAmountRunR = res.body.result.moreAmountRunR;
+						that.moreAmountRunW = res.body.result.moreAmountRunW;
 						that.moreDealCount = res.body.result.moreDealCount;
 						that.moreDealProfit = res.body.result.moreDealProfit;
 						that.moreAgent = res.body.result.moreAgent;

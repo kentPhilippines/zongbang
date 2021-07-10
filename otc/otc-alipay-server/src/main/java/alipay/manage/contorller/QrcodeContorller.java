@@ -157,7 +157,7 @@ public class QrcodeContorller {
             if (b) {
                 String amount = getAmount(order.getDealAmount());
                 String witNotify = mediumNumber + mediumPhone + amount; //代付回调成功 标记
-                redisUtil.set("WIT:" + witNotify, order.getOrderId());
+                redisUtil.set("WIT:" + witNotify, order.getOrderId(), 600);
             }
         } else {
             String[] split = order.getOrderQr().split(MARK);

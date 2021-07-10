@@ -97,7 +97,7 @@ public interface DealOrderMapper {
     @Select("SELECT retain2 , orderId FROM alipay_deal_order WHERE createTime > DATE_ADD(NOW(),INTERVAL -20 MINUTE)  AND orderStatus = 1 AND orderQrUser = 'ChuanShanJia' LIMIT 100")
     List<DealOrder> findXianYuOrder2();
     @CacheEvict(value = ORDER_INFO_CHANNEL, allEntries = true)
-    @Update("update alipay_deal_order set orderQr = #{bank} where orderId = #{orderId}")
+    @Update("update alipay_deal_order set orderQr = #{bank}  , lockWit  =  1 ,  lockWitTime = now()  where orderId = #{orderId}")
     int updateBankInfoByOrderId(String bank, String orderId);
 
     @Cacheable(cacheNames = {ORDER_INFO_CHANNEL}, unless = "#result == null")
@@ -132,8 +132,8 @@ public interface DealOrderMapper {
             " ( select * from alipay_deal_order where orderStatus = 2  and  retain4 = 1   and (orderType = 1 or orderType = 3 )      and    submitTime  between    CURRENT_TIMESTAMP - INTERVAL 50 MINUTE   " +
             "     and  now() order by id limit 25) " +
             " union all " +
-            " ( select * from alipay_deal_order  where orderStatus = 2  and  retain4 = 1   and  orderType = 4  and    submitTime  between    CURRENT_TIMESTAMP - INTERVAL 50 MINUTE  " +
-            "        and  CURRENT_TIMESTAMP - INTERVAL 20 MINUTE )  ")
+            " ( select * from alipay_deal_order  where orderStatus = 2  and  retain4 = 1   and  orderType = 4  and enterPay = 1  and    submitTime  between    CURRENT_TIMESTAMP - INTERVAL 500 MINUTE  " +
+            "        and  CURRENT_TIMESTAMP - INTERVAL 10 MINUTE )  ")
     List<DealOrder> findSuccessAndNotAmount();
 
 

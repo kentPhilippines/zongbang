@@ -216,4 +216,11 @@ public class AmountPublic extends Util {
         fund.setUserId(wit.getUserId());
         return amountConfig.addAmountBalance(fund, wit.getAmount(), Util.ADD_BANK_PROFIT, new BigDecimal(0), wit.getOrderId());
     }
+
+    public Result witBankCardAmountFee(Withdraw wit) {
+        UserFund fund = new UserFund();
+        fund.setUserId(wit.getUserId());
+        return amountConfig.addAmountBalance(fund, wit.getFee(), Util.ADD_BANK_PROFIT, new BigDecimal(0), wit.getOrderId());
+
+    }
 }

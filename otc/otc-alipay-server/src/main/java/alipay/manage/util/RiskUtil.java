@@ -5,6 +5,7 @@ import alipay.manage.api.feign.ConfigServiceClient;
 import alipay.manage.bean.DealOrder;
 import alipay.manage.bean.UserFund;
 import alipay.manage.service.CorrelationService;
+import alipay.manage.util.bankcardUtil.BankUtil;
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -35,20 +36,26 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class RiskUtil {
-	private static final Log log = LogFactory.get();
-	@Resource
-	RedisUtil redisUtil;
-	@Autowired ConfigServiceClient configServiceClientImpl;
-	@Autowired CorrelationService correlationServiceImpl;
-	DateFormat formatter = new SimpleDateFormat(Common.Order.DATE_TYPE);
-	/**
-	 * <p> 更新缓存中的账户余额 </p>
-	 *
-	 * @param user 资金账户
-	 * @param flag 是否发起顶代扣款冻结
-	 * @throws ParseException 时间转换异常
-	 */
-	public void updataUserAmountRedis(UserFund user, boolean flag) {
+    private static final Log log = LogFactory.get();
+    @Resource
+    RedisUtil redisUtil;
+    @Autowired
+    ConfigServiceClient configServiceClientImpl;
+    @Autowired
+    CorrelationService correlationServiceImpl;
+    DateFormat formatter = new SimpleDateFormat(Common.Order.DATE_TYPE);
+    private static final Integer LOCK_TIME = 800;
+    @Autowired
+    private BankUtil bankUtil;
+
+    /**
+     * <p> 更新缓存中的账户余额 </p>
+     *
+     * @param user 资金账户
+     * @param flag 是否发起顶代扣款冻结
+     * @throws ParseException 时间转换异常
+     */
+    public void updataUserAmountRedis(UserFund user, boolean flag) {
         log.info("【进入账户金额虚拟冻结更新，当前账户：" + user.getUserId() + "】");
         if (flag) {
             log.info("【顶代账户余额冻结模式】");
@@ -68,7 +75,7 @@ public class RiskUtil {
                 }
                 Object object = hmget.get(obj.toString());// 当前金额
                 if (!DateUtil.isExpired(parse, DateField.SECOND,
-                        Integer.valueOf(1200), new Date())) {
+                        Integer.valueOf(LOCK_TIME), new Date())) {
                     redisUtil.hdel(user.getUserId(), obj.toString());
                 }
             }
@@ -88,7 +95,7 @@ public class RiskUtil {
                 e.printStackTrace();
             }
             Object object = hmget.get(obj.toString());// 当前金额
-            if (!DateUtil.isExpired(parse, DateField.SECOND, Integer.valueOf(1200), new Date())) {
+            if (!DateUtil.isExpired(parse, DateField.SECOND, Integer.valueOf(LOCK_TIME), new Date())) {
                 redisUtil.hdel(user.getUserId(), obj.toString());
             }
         }
@@ -165,6 +172,9 @@ public class RiskUtil {
         //	} catch (ParseException e) {
         //		log.info("解锁订单当前码商订单金额发生异常，当前码商改订单金额解锁失败，解锁时间误差时间为20秒");
         //	}
+        if ("4".equals(qrcodeDealOrder.getOrderType())) {//卡商代付订单成功，则解锁卡商代付缓存锁定
+            bankUtil.openWit(qrcodeDealOrder.getOrderQrUser(), qrcodeDealOrder.getDealAmount().toString(), qrcodeDealOrder.getOrderId());
+        }
         return true;
     };
 	/**
@@ -232,8 +242,8 @@ public class RiskUtil {
 		Map<Object, Object> hmget = redisUtil.hmget(qrcodeDealOrder.getOrderQr());
 		if (hmget.size() > 0) {
 			redisUtil.hset(qrcodeDealOrder.getOrderQr() + qrcodeDealOrder.getOrderQrUser(), qrcodeDealOrder.getOrderQr() + qrcodeDealOrder.getOrderId(), qrcodeDealOrder.getOrderId());
-		} else {
-			redisUtil.hset(qrcodeDealOrder.getOrderQr() + qrcodeDealOrder.getOrderQrUser(), qrcodeDealOrder.getOrderQr() + qrcodeDealOrder.getOrderId(), qrcodeDealOrder.getOrderId(), 1800);
+        } else {
+            redisUtil.hset(qrcodeDealOrder.getOrderQr() + qrcodeDealOrder.getOrderQrUser(), qrcodeDealOrder.getOrderQr() + qrcodeDealOrder.getOrderId(), qrcodeDealOrder.getOrderId(), LOCK_TIME);
 		}
 	}
 }

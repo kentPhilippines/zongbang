@@ -112,18 +112,19 @@ var gatheringCodeVM = new Vue({
 					{mediumCode: 'COMM', mediumName: '交通银行'},
 					{mediumCode: 'CEB', mediumName: '中国光大银行'},
 					{mediumCode: 'SPABANK', mediumName: '平安银行'},
-					{mediumCode: 'CITIC', mediumName: '中信银行'},
-					{mediumCode: 'HXBANK', mediumName: '华夏银行'},
-					{mediumCode: 'GCB', mediumName: '广州银行'},
-					{mediumCode: 'SPDB', mediumName: '上海浦东发展银行'},
-					{mediumCode: 'GLBANK', mediumName: '桂林银行'},
-					{mediumCode: 'HXBANK', mediumName: '华夏银行'},
-					{mediumCode: 'ZHHR', mediumName: '珠海华润银行'},
-					{mediumCode: 'GDNX', mediumName: '广东农信'},
-					{mediumCode: 'HBNX', mediumName: '湖北农信'},
-					{mediumCode: 'HBNX', mediumName: '河北农信'},
-					{mediumCode: 'HNNX', mediumName: '湖南农信'}
-				]
+                    {mediumCode: 'CITIC', mediumName: '中信银行'},
+                    {mediumCode: 'HXBANK', mediumName: '华夏银行'},
+                    {mediumCode: 'GCB', mediumName: '广州银行'},
+                    {mediumCode: 'SPDB', mediumName: '上海浦东发展银行'},
+                    {mediumCode: 'GLBANK', mediumName: '桂林银行'},
+                    {mediumCode: 'HXBANK', mediumName: '华夏银行'},
+                    {mediumCode: 'ZHHR', mediumName: '珠海华润银行'},
+                    {mediumCode: 'GDNX', mediumName: '广东农信'},
+                    {mediumCode: 'HBNX', mediumName: '湖北农信'},
+                    {mediumCode: 'HBNX', mediumName: '河北农信'},
+                    {mediumCode: 'HNNX', mediumName: '湖南农信'},
+                    {mediumCode: 'TJBK', mediumName: '天津银行'}
+                ]
 				this.mediumDictBankTypeItems = [
 					{mediumCode: 'W', mediumName: '出款卡'},
 					{mediumCode: 'R', mediumName: '入款卡'},

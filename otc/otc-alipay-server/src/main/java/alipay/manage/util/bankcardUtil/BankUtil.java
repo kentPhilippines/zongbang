@@ -59,16 +59,100 @@ public class BankUtil {
 	DateFormat formatter = new SimpleDateFormat(Common.Order.DATE_TYPE);
 	@Autowired
 	private MediumService mediumService;
+	private static final Integer LOCK_TIME = 800;
+	private static final String WIT_BANK_COUNT = "WIT:BANK:COUNT:";//代付出款缓存数据统计
+
 
 	/**
-     * <p>选码的本地方法</p>
-     *
-     * @param orderNo 订单号
-     * @param amount  金额
-     * @param code    选吗CODE值
-     * @param flag    是否为顶代结算模式  true  是     false   否
-     * @return
-     * @throws ParseException
+	 * 推送消息给卡商提示有接单
+	 *
+	 * @param qrcodeId
+	 */
+	private void push(String qrcodeId) {
+
+
+	}
+
+	/**
+	 * <p>
+	 * 获取唯一的订单号,根据支付宝回调
+	 * </p>
+	 *
+	 * @return
+	 */
+	public String findOrderBy(String amount, String phone, String bankNo) {
+		log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "，bankNo = " + bankNo + "】");
+		String notify = bankNo + phone + amount.toString();
+		Object object = redisUtil.get(notify);//可以找到即位当前充值订单的关联订单号
+		if (ObjectUtil.isNull(object)) {
+			return null;
+		}
+		/**
+		 * 当前数据是否删除有待商榷
+		 * 如果放开这个数据可能会造成保存支付的问题， 当前数据标记最大话的减少 不按照规定 支付出错的问题
+		 */
+		redisUtil.deleteKey(notify);
+
+		/**
+		 * <p>
+		 * 对IP解禁
+		 * </p>
+		 * Object IP = redisUtil.get(object.toString()); Set<Object> sGet =
+		 * redisUtil.sGet(IP.toString()); Iterator<Object> iterator = sGet.iterator();
+		 * while (iterator.hasNext()) { Object next = iterator.next();//这是具体值
+		 * redisUtil.setRemove(IP.toString(),next.toString()); }
+		 */
+		return object.toString();
+	}
+
+	/**
+	 * <p>
+	 * 输入用户id，查询用户的虚拟冻结金额
+	 * </p>
+	 *
+	 * @param userId 用户id
+	 * @return amount 当前用户缓存冻结金额
+	 */
+	public BigDecimal getUserAmount(String userId) {
+		BigDecimal amount = new BigDecimal("0");
+		Map<Object, Object> hmget = redisUtil.hmget(userId);// 用户的虚拟hash金额缓存 key = 用户 + 时间 value = 金额
+		Set<Object> keySet = hmget.keySet();
+		try {
+			for (Object obj : keySet) {
+				String accountId = userId;
+				int length = accountId.length();
+				String subSuf = StrUtil.subSuf(obj.toString(), length);// 时间戳
+				Date parse = formatter.parse(subSuf);
+				Object object = hmget.get(obj.toString());// 当前金额
+				if (!DateUtil.isExpired(parse, DateField.SECOND,
+						Integer.valueOf(configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.FREEZE_PLAIN_VIRTUAL).getResult().toString()), new Date())) {
+					redisUtil.hdel(userId, obj.toString());
+				}
+			}
+			Map<Object, Object> hmget2 = redisUtil.hmget(userId);
+			Set<Object> keySet2 = hmget2.keySet();
+			for (Object obj : keySet2) {
+				Object object = hmget2.get(obj.toString());
+				BigDecimal money = new BigDecimal(object.toString());
+				amount = amount.add(money);
+			}
+		} catch (ParseException ex) {
+			ex.printStackTrace();
+		}
+		return amount;
+	}
+
+	private static final String WIT_LOCK = "WIT:LOCK:";//代付出款缓存标记
+
+	/**
+	 * <p>选码的本地方法</p>
+	 *
+	 * @param orderNo 订单号
+	 * @param amount  金额
+	 * @param code    选吗CODE值
+	 * @param flag    是否为顶代结算模式  true  是     false   否
+	 * @return
+	 * @throws ParseException
      */
     public Medium findQr(String orderNo, BigDecimal amount, List<String> code, boolean flag) {
 
@@ -139,10 +223,10 @@ public class BankUtil {
 			//	Object object = redisUtil.get(qr.getPhone());
 			boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
 			if (ObjectUtil.isNull(object2) && clickAmount) {
-				redisUtil.set(notify, orderNo, Integer.valueOf(1200));    //核心回调数据
+				redisUtil.set(notify, orderNo, Integer.valueOf(LOCK_TIME));    //核心回调数据
 				//redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
 				String hashkey = qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE);    //锁定金额数据
-				redisUtil.set("AMOUNT:LOCK:" + orderNo, hashkey, 1200);//金额锁定时间标记     , 如果在20分钟内回调就会删除锁定金额
+				redisUtil.set("AMOUNT:LOCK:" + orderNo, hashkey, LOCK_TIME);//金额锁定时间标记     , 如果在20分钟内回调就会删除锁定金额
 				redisUtil.hset(qr.getQrcodeId(), hashkey, dealAmount.toString());//虚拟冻结金额
 				// 该风控规则 后期有需求在加    当前媒介 如果超过  X 次未支付， 则对 当前媒介进行锁定			redisUtil.hset(qr.getFileId(), qr.getFileId() + orderNo, orderNo, Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_IS_CLICK).getResult().toString()));
 				String orderMark = "ORDER:" + qr.getQrcodeId() + ":AUTO";
@@ -156,84 +240,32 @@ public class BankUtil {
 		return null;
 	}
 
-
 	/**
-	 * 推送消息给卡商提示有接单
-	 *
-	 * @param qrcodeId
+	 * 存储当前代付缓存数据统计
 	 */
-	private void push(String qrcodeId) {
-
-
+	void saveWit(String userId, String amount, String orderId) {
+		String hashkeyCount = userId + orderId;
+		redisUtil.hset(WIT_BANK_COUNT + userId, hashkeyCount, orderId);
 	}
 
 	/**
-	 * <p>
-	 * 获取唯一的订单号,根据支付宝回调
-	 * </p>
+	 * 获取缓存代付金额
 	 *
 	 * @return
 	 */
-	public String findOrderBy(String amount, String phone, String bankNo) {
-		log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "，bankNo = " + bankNo + "】");
-		String notify = bankNo + phone + amount.toString();
-		Object object = redisUtil.get(notify);//可以找到即位当前充值订单的关联订单号
-		if (ObjectUtil.isNull(object)) {
-			return null;
-		}
-		/**
-		 * 当前数据是否删除有待商榷
-		 * 如果放开这个数据可能会造成保存支付的问题， 当前数据标记最大话的减少 不按照规定 支付出错的问题
-		 */
-		redisUtil.deleteKey(notify);
-
-		/**
-         * <p>
-		 * 对IP解禁
-		 * </p>
-		 * Object IP = redisUtil.get(object.toString()); Set<Object> sGet =
-		 * redisUtil.sGet(IP.toString()); Iterator<Object> iterator = sGet.iterator();
-		 * while (iterator.hasNext()) { Object next = iterator.next();//这是具体值
-		 * redisUtil.setRemove(IP.toString(),next.toString()); }
-		 */
-		return object.toString();
+	boolean findAmountWit(String userId) {
+		Map<Object, Object> hmget = redisUtil.hmget(WIT_BANK_COUNT + userId);
+		return hmget.size() > 3;
 	}
 
 	/**
-	 * <p>
-	 * 输入用户id，查询用户的虚拟冻结金额
-	 * </p>
-	 *
-	 * @param userId 用户id
-	 * @return amount 当前用户缓存冻结金额
+	 * 放开当前代付缓存数据
 	 */
-	public BigDecimal getUserAmount(String userId) {
-		BigDecimal amount = new BigDecimal("0");
-		Map<Object, Object> hmget = redisUtil.hmget(userId);// 用户的虚拟hash金额缓存 key = 用户 + 时间 value = 金额
-		Set<Object> keySet = hmget.keySet();
-		try {
-			for (Object obj : keySet) {
-				String accountId = userId;
-				int length = accountId.length();
-				String subSuf = StrUtil.subSuf(obj.toString(), length);// 时间戳
-				Date parse = formatter.parse(subSuf);
-				Object object = hmget.get(obj.toString());// 当前金额
-				if (!DateUtil.isExpired(parse, DateField.SECOND,
-						Integer.valueOf(configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.FREEZE_PLAIN_VIRTUAL).getResult().toString()), new Date())) {
-					redisUtil.hdel(userId, obj.toString());
-				}
-			}
-			Map<Object, Object> hmget2 = redisUtil.hmget(userId);
-			Set<Object> keySet2 = hmget2.keySet();
-			for (Object obj : keySet2) {
-				Object object = hmget2.get(obj.toString());
-				BigDecimal money = new BigDecimal(object.toString());
-				amount = amount.add(money);
-			}
-		} catch (ParseException ex) {
-			ex.printStackTrace();
-		}
-		return amount;
+	public void openWit(String userId, String amount, String orderId) {
+		redisUtil.del(WIT_BANK_COUNT + userId);
 	}
+
+
+
 
 }

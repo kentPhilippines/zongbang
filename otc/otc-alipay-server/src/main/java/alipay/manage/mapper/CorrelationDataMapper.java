@@ -22,11 +22,12 @@ public interface CorrelationDataMapper {
     int updateByExample(@Param("record") CorrelationData record, @Param("example") CorrelationDataExample example);
     int updateByPrimaryKeySelective(CorrelationData record);
     int updateByPrimaryKey(CorrelationData record);
-    @Select("  SELECT " + 
-    		"  SUM(CASE WHEN  orderStatus = 2  THEN amount END) AS moreAmountRun," + 
-    		"  SUM(CASE WHEN  orderStatus = 2  THEN 1 END) AS moreDealCount" + 
-    		"  FROM alipay_correlation_data WHERE userId IN (" + 
-    		"  SELECT childrenName FROM alipay_correlation WHERE parentName  = #{userId} )  AND  TO_DAYS(createTime) = TO_DAYS(now())"
+    @Select("  SELECT " +
+            "  SUM(CASE WHEN  orderStatus = 2 and orderType = 1  THEN dealAmount END) AS moreAmountRunR , " +
+            "  SUM(CASE WHEN  orderStatus = 2 and orderType = 4  THEN dealAmount END) AS moreAmountRunW , " +
+            "  SUM(CASE WHEN  orderStatus = 2  THEN 1 END) AS moreDealCount" +
+            "  FROM alipay_deal_order WHERE orderQrUser IN (" +
+            "  SELECT childrenName FROM alipay_correlation WHERE parentName  = #{userId} )  AND  TO_DAYS(createTime) = TO_DAYS(now())"
     		 )
 	UserCountBean findDealDate(@Param("userId") String userId );
     @Select("select  count(1) as  dataArray " + 

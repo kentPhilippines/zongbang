@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class MD5 {
 	public static void main(String[] args) {
-		String s = md5("6228483499476253472");
+		String s = md5("622908383007761848");
 		System.out.println(s);
 	}
 

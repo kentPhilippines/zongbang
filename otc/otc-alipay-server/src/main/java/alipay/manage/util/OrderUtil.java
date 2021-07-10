@@ -609,10 +609,9 @@ public class OrderUtil {
         if ("2".equals(wit.getWithdrawType()) && "2".equals(wit.getRetain1())) {
             //当前订单为卡商代付订单，且卡商代付订单提款为 分润提款
             amountPublic.witBankCardAmount(wit);
+            amountPublic.witBankCardAmountFee(wit);
             amountRunUtil.witBankCardAmount(wit);
         }
-
-
         return Result.buildSuccess();
     }
 

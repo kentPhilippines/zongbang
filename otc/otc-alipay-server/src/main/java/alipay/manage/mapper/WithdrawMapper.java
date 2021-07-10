@@ -116,7 +116,7 @@ public interface WithdrawMapper {
     @Update("update alipay_withdraw set ethFee = 1 where orderId = #{orderId}")
     void updateSuccessAndAmount(String orderId);
 
-    @Select("select * from alipay_withdraw where  orderStatus = 1 limit 15")
+    @Select("select * from alipay_withdraw where  orderStatus = 1 and  withdrawType = 1   limit 15")
     List<Withdraw> findNotPush();
 
     @Update("update alipay_withdraw set " +

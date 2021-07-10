@@ -728,7 +728,7 @@ public class AmountRunUtil {
 
     public Result addBankprofit(Withdraw wit) {
 
-        Result add = add(PROFIT_AMOUNT_AGENT_BANK_W, wit.getUserId(), wit.getOrderId(), wit.getAmount(), wit.getRetain2(), "当前卡商佣金退回，当前退回佣金为：" + wit.getAmount(), RUNTYPE_ARTIFICIAL);
+        Result add = add(PROFIT_AMOUNT_BANK_R, wit.getUserId(), wit.getOrderId(), wit.getAmount(), wit.getRetain2(), "当前卡商佣金退回，当前退回佣金为：" + wit.getAmount(), RUNTYPE_ARTIFICIAL);
         return add;
     }
 }

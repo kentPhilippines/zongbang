@@ -44,6 +44,7 @@ public class CreateOrder {
     private static final String MARK = ":";
     ;
     private static final String MARS = "SHENFU";
+    private static final String WIT_BANK_COUNT = "WIT:BANK:COUNT";//代付出款缓存数据统计
     @Autowired
     RedisUtil redis;
     @Autowired
@@ -110,6 +111,7 @@ public class CreateOrder {
                 push(bankInfoUser);
             }
         });
+        queue.saveWit(bankInfoUser, wit.getAmount().toString(), bc);
         return result;
     }
 
@@ -155,8 +157,6 @@ public class CreateOrder {
                 channelFeeId, flag, bankInfo, userFeeId,
                 Boolean.FALSE, dealApp.getOrderIp(), dealApp.getNotify(), dealApp.getBack());
         if (!result.isSuccess()) {
-
-
             return result;
         }
         Map cardmap = new HashMap();
@@ -377,13 +377,19 @@ public class CreateOrder {
         Collections.sort(userFundList, new Comparator<UserFund>() {
             @Override
             public int compare(UserFund o1, UserFund o2) {
-                return o1.getTodayDealAmount().subtract(o1.getTodayOtherWitAmount()).compareTo(o2.getTodayDealAmount().subtract(o2.getTodayOtherWitAmount()));
+                return o1.getTodayDealAmount().subtract(o1.getTodayOtherWitAmount()).compareTo(o2.getTodayDealAmount().subtract(o2.getTodayOtherWitAmount())) * -1;
             }
         });
         if (CollUtil.isEmpty(userFundList)) {
             return null;
         }
-        return userFundList.get(0).getUserId();
+        for (UserFund fund : userFundList) {
+            boolean amountWit = queue.findAmountWit(fund.getUserId());
+            if (!amountWit) {
+                return fund.getUserId();
+            }
+        }
+        return CollUtil.getFirst(userFundList).getUserId();
     }
 
 
