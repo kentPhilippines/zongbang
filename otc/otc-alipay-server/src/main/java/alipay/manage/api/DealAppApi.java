@@ -80,11 +80,12 @@ public class DealAppApi extends PayOrderService {
         return dealPay.deal(request);
     }
 
-    @PostMapping("/wit")
+ //   @PostMapping("/wit")
     public Result witOrder(HttpServletRequest request) {
         return witPay.wit(request, false);
     }
-    @PostMapping("/witCheckAmount")
+
+    //  @PostMapping("/witCheckAmount")
     public Result witClickAmount(HttpServletRequest request) {
         return witPay.wit(request, true);
     }

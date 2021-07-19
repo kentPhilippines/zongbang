@@ -91,7 +91,7 @@ public class CreateOrder {
         userFeeId = rateFee.getId();
 
         //出款选卡算法
-        String bankInfoUser = getBankInfo(userId, accountInfo.getQueueList());//出款人
+        String bankInfoUser = getBankInfo(userId, accountInfo.getQueueList(), bc);//出款人
         if (StrUtil.isEmpty(bankInfoUser)) {
             return Result.buildFailMessage("暂无出款渠道");
         }
@@ -111,7 +111,7 @@ public class CreateOrder {
                 push(bankInfoUser);
             }
         });
-        queue.saveWit(bankInfoUser, wit.getAmount().toString(), bc);
+
         return result;
     }
 
@@ -142,6 +142,9 @@ public class CreateOrder {
         if (StrUtil.isNotBlank(accountInfo.getAgent())) {
             UserInfo agent = findAgent(accountInfo.getAgent());
             queueCode = agent.getQueueList().split(",");//队列供应标识数组
+        } else {
+            String queueList = accountInfo.getQueueList();
+            queueCode = queueList.split(",");//队列供应标识数组
         }
         String bc = GenerateOrderNo.Generate("BA");
         Medium qr = queue.findQr(bc, dealApp.getOrderAmount(), Arrays.asList(queueCode), false);//当前接口限制 收款回调，接单限制，接单评率等数据
@@ -167,6 +170,7 @@ public class CreateOrder {
         cardmap.put("no_order", bc);
         cardmap.put("oid_partner", dealApp.getOrderId());
         redis.hmset(MARS + bc, cardmap, 600000);
+        result.setMessage(qr.getMediumHolder() + ":" + qr.getAccount() + ":" + qr.getMediumNumber());
         result.setResult(PayApiConstant.Notfiy.OTHER_URL + "/pay?orderId=" + bc + "&type=203");
         ThreadUtil.execute(() -> {
             corr(bc, qr.getMediumNumber());
@@ -355,7 +359,7 @@ public class CreateOrder {
         return Result.buildFailMessage("失败未知");
     }
 
-    String getBankInfo(String userId, String weight) {
+    String getBankInfo(String userId, String weight, String orderId) {
         /**
          * #################出款选卡逻辑################
          * 如果指定出款人出款则直接选中出款人直接出款，如果未指定出款人，则按照以下逻辑选择出款
@@ -367,12 +371,12 @@ public class CreateOrder {
             return userId;
         }
         List<UserFund> userFundList = null;
-        if (StrUtil.isEmpty(weight)) {
-            userFundList = userFundService.findBankUserId();
-        } else {
-            String[] split = weight.split(",");
-            userFundList = userInfoServiceImpl.findUserByWeight(split);
-        }
+        //    if (StrUtil.isEmpty(weight)) {
+        userFundList = userFundService.findBankUserId();
+        //  } else {
+        //    String[] split = weight.split(",");
+        //      userFundList = userInfoServiceImpl.findUserByWeight(split);
+        //    }
         //入款金额 - 出款金额   差额最小  且根据入款金额排序
         Collections.sort(userFundList, new Comparator<UserFund>() {
             @Override
@@ -383,16 +387,25 @@ public class CreateOrder {
         if (CollUtil.isEmpty(userFundList)) {
             return null;
         }
-        for (UserFund fund : userFundList) {
+        for (UserFund fund : userFundList) {//每人三单
             boolean amountWit = queue.findAmountWit(fund.getUserId());
             if (!amountWit) {
+                queue.saveWit(fund.getUserId(), orderId);
+                return fund.getUserId();
+            }
+        }
+        for (UserFund fund : userFundList) {//如果选不到 全部删除
+            queue.openWit(fund.getUserId());
+        }
+        for (UserFund fund : userFundList) {//重新每人三单
+            boolean amountWit = queue.findAmountWit(fund.getUserId());
+            if (!amountWit) {
+                queue.saveWit(fund.getUserId(), orderId);
                 return fund.getUserId();
             }
         }
         return CollUtil.getFirst(userFundList).getUserId();
     }
-
-
     UserInfo findAgent(String userId) {
         UserInfo userAgent = userInfoServiceImpl.findUserAgent(userId);
         if (StrUtil.isNotEmpty(userAgent.getAgent())) {

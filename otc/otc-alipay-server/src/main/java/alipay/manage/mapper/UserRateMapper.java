@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
@@ -69,14 +70,15 @@ public interface UserRateMapper {
 
     /**
      * 查询码商入款费率
+     *
      * @return
      */
     @Cacheable(cacheNames = {RATE}, unless = "#result == null")
     @Select("select * from alipay_user_rate where feeType = 1 and userId =  #{userId}")
     UserRate findUserRateR(@Param("userId") String userId);
 
-
-    @Update("update alipay_user_rate set fee = #{fee},payTypr=#{payTypr} where feeType = 1 and userId = #{userId} ")
+    @CacheEvict(value = RATE, allEntries = true)
+    @Update("update alipay_user_rate set fee = #{fee}  where payTypr = #{payTypr} and userId = #{userId} ")
     int updateRateR(@Param("userId") String userId, @Param("fee") String fee, @Param("payTypr") String payTypr);
 
     @Cacheable(cacheNames = {RATE}, unless = "#result == null")

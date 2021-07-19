@@ -44,11 +44,11 @@ public class OrderUtil {
     static Lock lock = new ReentrantLock();
     Logger log = LoggerFactory.getLogger(OrderUtil.class);
     @Resource
-    ChannelFeeMapper channelFeeDao;
+    private ChannelFeeMapper channelFeeDao;
     @Autowired
-    CheckUtils checkUtils;
+    private CheckUtils checkUtils;
     @Autowired
-    WithdrawService withdrawServiceImpl;
+    private WithdrawService withdrawServiceImpl;
     @Autowired
     private OrderService orderServiceImpl;
     @Autowired
@@ -243,9 +243,24 @@ public class OrderUtil {
                     DealOrder orderSu = orderServiceImpl.findOrderByOrderId(orderId);
                     if (orderSu.getOrderStatus().toString().equals(OrderDealStatus.成功.getIndex().toString())) {
                         riskUtil.orderSu(order);
+                        if (order.getOrderType().equals(Common.Order.ORDER_TYPE_DEAL) || order.getOrderType().equals(Common.Order.ORDER_TYPE_BANKCARD_R)) {
+                            ThreadUtil.execute(() -> {  //如果是入款订单,当前银行卡的系统业务余额会增加
+                                log.info("【更新银行卡余额】");
+                                String orderQr = order.getOrderQr();
+                                String[] split = orderQr.split(":");
+                                String bankAccount = split[2];
+                                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
+                            });
+                        }
                     }
                     log.info("若为代付订，则置商户代付订单为成功，当前订单号：" + orderSu.getOrderId() + "，当前订单类型：" + orderSu.getOrderType() + "");
                     if (Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(orderSu.getOrderType().toString())) {
+                        ThreadUtil.execute(() -> {  //如果是入款订单,当前银行卡的系统业务余额会增加
+                            String orderQr = order.getOrderQr();
+                            String[] split = orderQr.split(":");
+                            String bankAccount = split[2];
+                            mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
+                        });
                         settlementOrderApp(orderSu);//如果是代付订单，商户会瞬间成功
                     }
                 });

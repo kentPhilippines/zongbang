@@ -231,7 +231,7 @@ public class UserInfoServiceImpl implements UserInfoService {
              SELECT childrenName FROM alipay_correlation WHERE parentName IN (
              SELECT userId FROM alipay_user_info WHERE userType  = 2 AND isAgent = '1' AND agent IS NULL AND accountBalance > '2000' ))
              */
-            findUserByAmount = userFundDao.findUserByAmountAgent(amount);
+        //    findUserByAmount = userFundDao.findUserByAmountAgent(amount);
         } else {
             findUserByAmount = userFundDao.findUserByAmount(amount);
         }

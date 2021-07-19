@@ -133,8 +133,8 @@
 								type="button"
 								v-on:click="confirmToPaid(order.orderId)"
 								v-show="order.orderStatus == 1 &&  ( order.orderQr != null  && order.orderQr != '') && ( order.payImg != null)">
-							确认已支付
-						</button>
+                            确认已付款
+                        </button>
 						<button class="btn btn-outline-info btn-lg"
 								type="button"
 								v-on:click="addQr(order.orderId)"
@@ -142,16 +142,16 @@
 							上传凭证
 						</button>
 					</div>
-					<div class="platform-order-body-item" v-show="order.orderType == 3 || order.orderType == 1">
-						<button class="btn btn-outline-info btn-lg"
-								type="button"
-								v-on:click="confirmToPaid(order.orderId)"
-								v-show="order.orderStatus == 1">确认已支付
-						</button>
-					</div>
+                    <!--<div class="platform-order-body-item" v-show="order.orderType == 3 || order.orderType == 1">
+                        <button class="btn btn-outline-info btn-lg"
+                                type="button"
+                                v-on:click="confirmToPaid(order.orderId)"
+                                v-show="order.orderStatus == 1">确认已支付
+                        </button>
+                    </div>-->
 
 
-					<div class="platform-order-body-item">
+                    <div class="platform-order-body-item">
 						<!-- <button class="btn btn-outline-danger btn-lg" type="button" v-on:click="showAppealPage(order)">申诉</button> -->
 					</div>
 				</div>

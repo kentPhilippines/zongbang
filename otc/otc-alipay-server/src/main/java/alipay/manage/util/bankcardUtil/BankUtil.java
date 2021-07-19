@@ -1,6 +1,7 @@
 package alipay.manage.util.bankcardUtil;
 
 import alipay.config.redis.RedisUtil;
+import alipay.config.task.BankOpen;
 import alipay.manage.api.feign.ConfigServiceClient;
 import alipay.manage.api.feign.QueueServiceClien;
 import alipay.manage.bean.UserFund;
@@ -29,10 +30,7 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -59,7 +57,8 @@ public class BankUtil {
 	DateFormat formatter = new SimpleDateFormat(Common.Order.DATE_TYPE);
 	@Autowired
 	private MediumService mediumService;
-	private static final Integer LOCK_TIME = 800;
+	private static final Integer LOCK_TIME = 600;
+	private static final Integer LOCK_TIME_OPEN = 300;
 	private static final String WIT_BANK_COUNT = "WIT:BANK:COUNT:";//代付出款缓存数据统计
 
 
@@ -155,8 +154,11 @@ public class BankUtil {
 	 * @throws ParseException
      */
     public Medium findQr(String orderNo, BigDecimal amount, List<String> code, boolean flag) {
-
-
+		Collection<String> strings = CollUtil.removeBlank(code);
+		code = new ArrayList<>();
+		for (String aa : strings) {
+			code.add(aa);
+		}
 		String dealAmount = "";
 		String[] split = amount.toString().split("\\.");
 		if (split.length == 1) {
@@ -223,10 +225,15 @@ public class BankUtil {
 			//	Object object = redisUtil.get(qr.getPhone());
 			boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
 			if (ObjectUtil.isNull(object2) && clickAmount) {
-				redisUtil.set(notify, orderNo, Integer.valueOf(LOCK_TIME));    //核心回调数据
+				Integer time = LOCK_TIME_OPEN;
+				if (BankOpen.BANK_LIST.contains(qr.getMediumNumber())) {
+					time = LOCK_TIME_OPEN;
+				}
+				;
+				redisUtil.set(notify, orderNo, Integer.valueOf(time));    //核心回调数据
 				//redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
 				String hashkey = qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE);    //锁定金额数据
-				redisUtil.set("AMOUNT:LOCK:" + orderNo, hashkey, LOCK_TIME);//金额锁定时间标记     , 如果在20分钟内回调就会删除锁定金额
+				redisUtil.set("AMOUNT:LOCK:" + orderNo, hashkey, time);//金额锁定时间标记     , 如果在20分钟内回调就会删除锁定金额
 				redisUtil.hset(qr.getQrcodeId(), hashkey, dealAmount.toString());//虚拟冻结金额
 				// 该风控规则 后期有需求在加    当前媒介 如果超过  X 次未支付， 则对 当前媒介进行锁定			redisUtil.hset(qr.getFileId(), qr.getFileId() + orderNo, orderNo, Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_IS_CLICK).getResult().toString()));
 				String orderMark = "ORDER:" + qr.getQrcodeId() + ":AUTO";
@@ -243,9 +250,10 @@ public class BankUtil {
 	/**
 	 * 存储当前代付缓存数据统计
 	 */
-	void saveWit(String userId, String amount, String orderId) {
+	void saveWit(String userId, String orderId) {
 		String hashkeyCount = userId + orderId;
-		redisUtil.hset(WIT_BANK_COUNT + userId, hashkeyCount, orderId);
+		boolean hset = redisUtil.hset(WIT_BANK_COUNT + userId, hashkeyCount, orderId);
+		log.info("【储存代付锁定数据：" + hashkeyCount + "，储存结果为：" + hset +"】");
 	}
 
 	/**
@@ -255,14 +263,17 @@ public class BankUtil {
 	 */
 	boolean findAmountWit(String userId) {
 		Map<Object, Object> hmget = redisUtil.hmget(WIT_BANK_COUNT + userId);
-		return hmget.size() > 3;
+		log.info("【代付锁定数据：" + hmget.toString() + "】");
+		return hmget.size() > 1;
 	}
 
 	/**
 	 * 放开当前代付缓存数据
 	 */
-	public void openWit(String userId, String amount, String orderId) {
+	public void openWit(String userId) {
+		log.info("【删除代付锁定数据为：" + WIT_BANK_COUNT + userId + "】");
 		redisUtil.del(WIT_BANK_COUNT + userId);
+
 	}
 
 

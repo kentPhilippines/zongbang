@@ -189,20 +189,10 @@ public class Api {
         if (null == paramMap) {
             return Result.buildFail();
         }
-        String balance = paramMap.get("balance").toString();//当前卡号余额
-        String bankName = paramMap.get("bankName").toString();//银行卡类型m
-        String counterpartyAccountName = "";
-        if (null != paramMap.get("counterpartyAccountName")) {
-            counterpartyAccountName = paramMap.get("counterpartyAccountName").toString();//交易对手账户名称
-        }
-        String myselfTailNumber = paramMap.get("myselfTailNumber").toString();//我的账号后几位
         String transactionAmount = paramMap.get("transactionAmount").toString();//转账金额
-        String transactionDate = paramMap.get("transactionDate").toString();//转账时间
         String transactionType = paramMap.get("transactionType").toString();//  income  转入      expenditure 转出
-        String typeDetail = paramMap.get("typeDetail").toString();//流水类型   收入（代付）
         String bankId = paramMap.get("bankId").toString();// 抓取到的银行卡号
         String phoneId = paramMap.get("phoneId").toString();// 抓取到的手机号
-        String userId = paramMap.get("userId").toString();// 抓取到的卡商账号id
         String originText = paramMap.get("originText").toString();// 短信原始内容
         String deviceIp = "";//设备ip
         if (MapUtil.isEmpty(paramMap)) {

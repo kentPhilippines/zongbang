@@ -1,5 +1,6 @@
 package test.number;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.http.HttpUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -8,8 +9,11 @@ import java.security.NoSuchAlgorithmException;
 
 public class MD5 {
 	public static void main(String[] args) {
-		String s = md5("622908383007761848");
-		System.out.println(s);
+		String number = "0.1_0.1";
+		String[] split = number.split("_");
+		for (String a : split) {
+			System.out.println(a);
+		}
 	}
 
 	private static final String UTF_8 = "utf-8";

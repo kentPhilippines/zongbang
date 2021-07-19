@@ -171,14 +171,21 @@ public class UserContorller {
 				rate.setFee(subtract);
 				rate.setUserId(user.getUserId());*/
 				if (rate.getFeeType().equals(2)) {
-					rate.setFee(new BigDecimal(0));
+					BigDecimal fee = rate.getFee();
+					BigDecimal myselfFee = new BigDecimal(code.getRebate().split("|")[1]).divide(new BigDecimal(100));//返点汇率
+					if (myselfFee.compareTo(fee) > 0) {
+						return Result.buildFailMessage("开户费率设置失败");
+					}
+
+
+					rate.setFee(myselfFee);
 					rate.setUserId(user.getUserId());
 					rateList.add(rate);
 					//	userRateService.add(rate);
 					continue;
 				}
 				BigDecimal fee = rate.getFee();//自己的费率
-				String rebate = code.getRebate();
+				String rebate = code.getRebate().split("_")[0];
 				BigDecimal myselfFee = new BigDecimal(rebate).divide(new BigDecimal(100));//返点汇率
 				if (myselfFee.compareTo(fee) > 0) {
 					return Result.buildFailMessage("开户费率设置失败");
@@ -340,10 +347,20 @@ public Result findUserByAccountId(HttpServletRequest request, String userId, Str
 		UserInfo userInfo = userInfoServiceImpl.findUserInfoByUserId(user.getUserId());//自己id
 		//入款费率修改
 		UserRate rateR = userRateService.findUserRateR(userInfo.getUserId());
-		BigDecimal fee2 = rateR.getFee();
-		BigDecimal fee3 = new BigDecimal(fee);
-		if (fee2.compareTo(fee3) < 0) {
-			return Result.buildFailMessage("费率设置违规");
+		UserRate userRateW = userRateService.findUserRateW(userInfo.getUserId());
+		if (payTypr.equals(rateR.getPayTypr())) {
+			BigDecimal fee2 = rateR.getFee();
+			BigDecimal fee3 = new BigDecimal(fee);
+			if (fee2.compareTo(fee3) < 0) {
+				return Result.buildFailMessage("费率设置违规");
+			}
+		}
+		if (payTypr.equals(userRateW.getPayTypr())) {
+			BigDecimal fee2 = userRateW.getFee();
+			BigDecimal fee3 = new BigDecimal(fee);
+			if (fee2.compareTo(fee3) < 0) {
+				return Result.buildFailMessage("费率设置违规");
+			}
 		}
 		boolean a = userRateService.updateRateR(userId, fee, payTypr);
 		if (a) {

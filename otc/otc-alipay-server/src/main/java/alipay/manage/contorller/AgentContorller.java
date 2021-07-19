@@ -70,7 +70,12 @@ public class AgentContorller {
 			List<UserRate> rateList = new ArrayList<>();
 			for (UserRate rate : userFeeList) {
 				if (rate.getFeeType().equals(2)) {
-					rate.setFee(new BigDecimal(0));
+					BigDecimal fee = rate.getFee();//自己的出款费率
+					BigDecimal myselfFee = new BigDecimal(user.getCardFee()).divide(new BigDecimal(100));//返点汇率
+					if (myselfFee.compareTo(fee) > 0) {
+						return Result.buildFailMessage("结算费率开始失败");
+					}
+					rate.setFee(myselfFee);
 					rate.setUserId(user.getUserId());
 					rateList.add(rate);
 					//	userRateService.add(rate);
@@ -155,6 +160,7 @@ public class AgentContorller {
 			}
 			bean.setBelongUser(user.getUserId());
 			bean.setCount(0);
+			bean.setRebate(bean.getRebateR() + "_" + bean.getRebateW());
 			log.info("【生成邀请码的方法，将邀请吗返回给前端】");
 			String createinviteCode = createinviteCode();
 			bean.setInviteCode(createinviteCode);

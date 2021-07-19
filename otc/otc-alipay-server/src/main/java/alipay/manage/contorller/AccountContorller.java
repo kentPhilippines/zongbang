@@ -94,6 +94,7 @@ public class AccountContorller {
         	log.info("当前用户未登陆");
         	return Result.buildFailMessage("当前用户未登陆");
         }
+
         String createinviteCode = createinviteCode();
         bean.setInviteCode(createinviteCode);
         boolean flag = inviteCodeServiceImpl.addinviteCode(bean);

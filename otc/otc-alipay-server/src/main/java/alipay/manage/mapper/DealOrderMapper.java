@@ -133,7 +133,7 @@ public interface DealOrderMapper {
             "     and  now() order by id limit 25) " +
             " union all " +
             " ( select * from alipay_deal_order  where orderStatus = 2  and  retain4 = 1   and  orderType = 4  and enterPay = 1  and    submitTime  between    CURRENT_TIMESTAMP - INTERVAL 500 MINUTE  " +
-            "        and  CURRENT_TIMESTAMP - INTERVAL 10 MINUTE )  ")
+            "        and  CURRENT_TIMESTAMP - INTERVAL 5 MINUTE )  ")
     List<DealOrder> findSuccessAndNotAmount();
 
 
@@ -151,7 +151,7 @@ public interface DealOrderMapper {
      *
      * @return
      */
-    @Update("update alipay_deal_order set orderStatus = 3 where ( orderType = 1 or orderType = 3  ) and orderStatus = 1  and  createTime <= CURRENT_TIMESTAMP - INTERVAL 10 MINUTE ")
+    @Update("update alipay_deal_order set orderStatus = 3 where ( orderType = 1 or orderType = 3  ) and orderStatus = 1  and  createTime <= CURRENT_TIMESTAMP - INTERVAL 5 MINUTE ")
     int updateUnNotify();
 
     @CacheEvict(value = ORDER_INFO_CHANNEL, allEntries = true)

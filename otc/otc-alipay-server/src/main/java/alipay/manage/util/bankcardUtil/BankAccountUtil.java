@@ -94,12 +94,7 @@ public class BankAccountUtil {
               /*
                 当前渠道结算费率实体
                */
-            ThreadUtil.execute(() -> {
-                String orderQr = order.getOrderQr();
-                String[] split = orderQr.split(":");
-                String bankAccount = split[2];
-                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
-            });
+
             UserInfo channel = userInfoServiceImpl.findUserByOrder(order.getOrderQrUser());
             UserFund userFund = new UserFund();
             userFund.setUserId(order.getOrderQrUser());

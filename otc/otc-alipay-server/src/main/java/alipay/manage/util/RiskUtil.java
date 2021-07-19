@@ -44,7 +44,7 @@ public class RiskUtil {
     @Autowired
     CorrelationService correlationServiceImpl;
     DateFormat formatter = new SimpleDateFormat(Common.Order.DATE_TYPE);
-    private static final Integer LOCK_TIME = 800;
+    private static final Integer LOCK_TIME = 1200;
     @Autowired
     private BankUtil bankUtil;
 
@@ -145,9 +145,10 @@ public class RiskUtil {
             BigDecimal bigDecimal = new BigDecimal(object.toString());
             amount = amount.add(bigDecimal);
         }
-		UserFund user2 = usercollect.get(userId);
-		return amount.compareTo(user2.getAccountBalance()) == -1;
-	}
+        UserFund user2 = usercollect.get(userId);
+        log.info("【当前入款订单缓存冻结金额为：" + amount + "】");
+        return amount.compareTo(user2.getAccountBalance().subtract(user2.getSumProfit())) == -1;
+    }
 	
 	
 	/**
@@ -155,15 +156,22 @@ public class RiskUtil {
 	 * @param order
 	 */
 	public void orderSu(DealOrder order) {
-		updataRedisOrDate(order);
-	}
+        try {
+            updataRedisOrDate(order);
+        } catch (Exception c) {
+            log.info("更新风控数据异常");
+            log.error(c);
+        }
 
-	/**
-	 * <p>清除缓存值</p>
-	 * @param qrcodeDealOrder 
-	 * @return
-	 */
-	boolean updataRedisOrDate(DealOrder qrcodeDealOrder) {
+    }
+
+    /**
+     * <p>清除缓存值</p>
+     *
+     * @param qrcodeDealOrder
+     * @return
+     */
+    boolean updataRedisOrDate(DealOrder qrcodeDealOrder) {
         clearAmount(qrcodeDealOrder);
         //	updataQr(qrcodeDealOrder);
         updateCorrelation(qrcodeDealOrder);
@@ -172,8 +180,9 @@ public class RiskUtil {
         //	} catch (ParseException e) {
         //		log.info("解锁订单当前码商订单金额发生异常，当前码商改订单金额解锁失败，解锁时间误差时间为20秒");
         //	}
+        unLockAmount(qrcodeDealOrder);
         if ("4".equals(qrcodeDealOrder.getOrderType())) {//卡商代付订单成功，则解锁卡商代付缓存锁定
-            bankUtil.openWit(qrcodeDealOrder.getOrderQrUser(), qrcodeDealOrder.getDealAmount().toString(), qrcodeDealOrder.getOrderId());
+            bankUtil.openWit(qrcodeDealOrder.getOrderQrUser());
         }
         return true;
     };
@@ -220,23 +229,27 @@ public class RiskUtil {
      * @param qrcodeDealOrder
      * @throws ParseException
      */
-    private void unLockAmount(DealOrder qrcodeDealOrder) throws ParseException {
+    private void unLockAmount(DealOrder qrcodeDealOrder) {
         Map<Object, Object> hmget2 = redisUtil.hmget(qrcodeDealOrder.getOrderQrUser());
         if (hmget2.size() <= 0) //成功订单提前解锁金额
         {
             return;
         }
-        Set<Object> keySet = hmget2.keySet();
-        for (Object obj : keySet) {
-            String accountId = qrcodeDealOrder.getOrderQrUser();
-            int length = accountId.length();
-            String subSuf = StrUtil.subSuf(obj.toString(), length);//时间戳
-    			Date parse = formatter.parse(subSuf);
-				if(qrcodeDealOrder.getDealAmount().compareTo(new BigDecimal(hmget2.get(obj.toString()).toString())) == 0  && DateUtils.isTimeScope(20, qrcodeDealOrder.getCreateTime(), parse)) {
-					redisUtil.hdel(qrcodeDealOrder.getOrderQrUser(), obj.toString());
-					break;
-				}
-			}
+        try {
+            Set<Object> keySet = hmget2.keySet();
+            for (Object obj : keySet) {
+                String accountId = qrcodeDealOrder.getOrderQrUser();
+                int length = accountId.length();
+                String subSuf = StrUtil.subSuf(obj.toString(), length);//时间戳
+                Date parse = formatter.parse(subSuf);
+                if (qrcodeDealOrder.getDealAmount().compareTo(new BigDecimal(hmget2.get(obj.toString()).toString())) == 0 && DateUtils.isTimeScope(20, qrcodeDealOrder.getCreateTime(), parse)) {
+                    redisUtil.hdel(qrcodeDealOrder.getOrderQrUser(), obj.toString());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            return;
+        }
 	}
 	private  void addDealSu(DealOrder qrcodeDealOrder) {
 		Map<Object, Object> hmget = redisUtil.hmget(qrcodeDealOrder.getOrderQr());

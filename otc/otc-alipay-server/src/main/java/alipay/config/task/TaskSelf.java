@@ -15,9 +15,11 @@ import org.springframework.stereotype.Component;
 public class TaskSelf {
     private static final Log log = LogFactory.get();
     @Autowired
-    UserTask userTaskImpl;
+    private UserTask userTaskImpl;
     @Autowired
-    OrderTask orderTask;
+    private OrderTask orderTask;
+    @Autowired
+    private BankOpen banks;
     @Autowired
     private ServerConfig serverConfig;
 
@@ -31,6 +33,16 @@ public class TaskSelf {
         orderTask.orderTask();
         log.info("【开始进行10秒代付订单推送】");
         orderTask.orderWitTask();
+    }
+
+    @Scheduled(cron = "0/5 * * * * ?")
+    public void openBank() {
+        if (serverConfig.getServerPort() != 9010) {
+            log.info("当前任务端口号不正确");
+            return;
+        }
+        log.info("【开始放开银行卡限制】");
+        banks.open();
     }
 
     @Scheduled(cron = "0 0 1 * * ?")

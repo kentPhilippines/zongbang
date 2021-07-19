@@ -5,14 +5,32 @@ import java.util.Date;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class InviteCode implements Serializable{
-	private static final long serialVersionUID = 1L;
+public class InviteCode implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Integer id;
 
     private String inviteCode;
 
     private String belongUser;
     private String rebate;
+    private String rebateR;
+    private String rebateW;
+
+    public String getRebateW() {
+        return rebateW;
+    }
+
+    public void setRebateW(String rebateW) {
+        this.rebateW = rebateW;
+    }
+
+    public String getRebateR() {
+        return rebateR;
+    }
+
+    public void setRebateR(String rebateR) {
+        this.rebateR = rebateR;
+    }
 
     public String getRebate() {
 

@@ -45,6 +45,10 @@ var auditOrderVM = new Vue({
 	},
 	computed: {},
 	created: function () {
+		this.dataRefreh();
+	},
+	destroyed() {
+		this.clear();
 	},
 	mounted: function () {
 		var that = this;
@@ -56,19 +60,34 @@ var auditOrderVM = new Vue({
 			that.qrcodeId = data.response.result.join(',');
 			that.addOrderPayImg(that.qrcodeId);
 		});
+
 	},
 	methods : {
-		query : function() {
+		dataRefreh() {
+			// 计时器正在进行中，退出函数
+			if (this.intervalId != null) {
+				return;
+			}
+			// 计时器为空，操作
+			this.intervalId = setInterval(() => {
+				this.loadPlatformOrder(); //加载数据函数
+			}, 5000);
+		},
+		// 停止定时器
+		clear() {
+			clearInterval(this.intervalId); //清除计时器
+			this.intervalId = null; //设置为null
+		},
+		query: function () {
 			this.pageNum = 1;
 			this.loadPlatformOrder();
 		},
-
-		prePage : function() {
+		prePage: function () {
 			this.pageNum = this.pageNum - 1;
 			this.loadPlatformOrder();
 		},
 
-		nextPage : function() {
+		nextPage: function () {
 			this.pageNum = this.pageNum + 1;
 			this.loadPlatformOrder();
 		},
