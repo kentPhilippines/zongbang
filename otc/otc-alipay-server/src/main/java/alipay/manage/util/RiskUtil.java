@@ -157,7 +157,8 @@ public class RiskUtil {
 	 */
 	public void orderSu(DealOrder order) {
         try {
-            updataRedisOrDate(order);
+            boolean b = updataRedisOrDate(order);
+            log.info("当前订单风控解锁数据为 : " + b + "，当前订单为：" + order.getOrderId() + "");
         } catch (Exception c) {
             log.info("更新风控数据异常");
             log.error(c);
@@ -180,7 +181,7 @@ public class RiskUtil {
         //	} catch (ParseException e) {
         //		log.info("解锁订单当前码商订单金额发生异常，当前码商改订单金额解锁失败，解锁时间误差时间为20秒");
         //	}
-        unLockAmount(qrcodeDealOrder);
+        //  unLockAmount(qrcodeDealOrder);
         if ("4".equals(qrcodeDealOrder.getOrderType())) {//卡商代付订单成功，则解锁卡商代付缓存锁定
             bankUtil.openWit(qrcodeDealOrder.getOrderQrUser());
         }
@@ -200,6 +201,7 @@ public class RiskUtil {
      * @param order
      */
     private void clearAmount(DealOrder order) {
+        log.info("【对商户账户金额进行解冻】");
         try {
             Object o = redisUtil.get("AMOUNT:LOCK:" + order.getOrderId());//金额标记
             String orderQrUser = order.getOrderQrUser();

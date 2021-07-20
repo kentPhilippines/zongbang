@@ -105,7 +105,7 @@ public interface DealOrderMapper {
     DealOrder findOrderNotify(@Param("orderId") String orderId);
 
     @Cacheable(cacheNames = {ORDER_INFO_CHANNEL}, unless = "#result == null")
-    @Select("select id, orderId, associatedId, orderStatus, dealAmount ,orderAccount, orderQrUser,externalOrderId FROM alipay_deal_order  where  orderId = #{orderId}")
+    @Select("select id, orderId, associatedId, orderType , orderQr ,  orderStatus, dealAmount ,orderAccount, orderQrUser,externalOrderId FROM alipay_deal_order  where  orderId = #{orderId}")
     DealOrder findOrderStatus(String orderId);
 
     /*  @Insert("insert into  alipay_usdt_order (blockNumber, timeStamp, hash, blockHash, fromAccount, contractAddress, toAccount, value,tokenName,tokenSymbol) " +

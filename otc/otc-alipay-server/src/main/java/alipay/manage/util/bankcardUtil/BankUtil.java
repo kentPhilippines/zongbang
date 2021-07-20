@@ -264,7 +264,7 @@ public class BankUtil {
 	boolean findAmountWit(String userId) {
 		Map<Object, Object> hmget = redisUtil.hmget(WIT_BANK_COUNT + userId);
 		log.info("【代付锁定数据：" + hmget.toString() + "】");
-		return hmget.size() > 1;
+		return hmget.size() > 0;
 	}
 
 	/**

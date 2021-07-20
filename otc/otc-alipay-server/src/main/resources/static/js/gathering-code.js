@@ -138,6 +138,9 @@ var gatheringCodeVM = new Vue({
 					{mediumCode: 'HRXJ', mediumName: '华融湘江'},
 					{mediumCode: 'CQNCSY', mediumName: '重庆农村商业'},
 					{mediumCode: 'HZYH', mediumName: '杭州银行'},
+					{mediumCode: 'HZYH', mediumName: '浙江农信'},
+					{mediumCode: 'SRYH', mediumName: '上饶银行'},
+					{mediumCode: 'SCNX', mediumName: '四川农信'},
 					{mediumCode: 'HFYH', mediumName: '恒丰银行'}
 				]
 				this.mediumDictBankTypeItems = [

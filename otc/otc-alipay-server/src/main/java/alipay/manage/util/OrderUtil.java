@@ -240,13 +240,14 @@ public class OrderUtil {
             } else {//修改成功，放入，等待定时任务跑结算
                 ThreadUtil.execute(() -> {//更新风控数据 统计数据等
                     log.info("更新风控数据，当前订单号：" + order.getOrderId() + "");
-                    DealOrder orderSu = orderServiceImpl.findOrderByOrderId(orderId);
+                    DealOrder orderSu = orderServiceImpl.findOrderStatus(orderId);
                     if (orderSu.getOrderStatus().toString().equals(OrderDealStatus.成功.getIndex().toString())) {
                         riskUtil.orderSu(order);
-                        if (order.getOrderType().equals(Common.Order.ORDER_TYPE_DEAL) || order.getOrderType().equals(Common.Order.ORDER_TYPE_BANKCARD_R)) {
+                        if (order.getOrderType().equals(Common.Order.ORDER_TYPE_DEAL.toString()) || order.getOrderType().equals(Common.Order.ORDER_TYPE_BANKCARD_R.toString())) {
                             ThreadUtil.execute(() -> {  //如果是入款订单,当前银行卡的系统业务余额会增加
-                                log.info("【更新银行卡余额】");
+                                log.info("【更新银行卡余额  入款增加】");
                                 String orderQr = order.getOrderQr();
+                                log.info("[当前更新银行卡：" + orderQr + "]");
                                 String[] split = orderQr.split(":");
                                 String bankAccount = split[2];
                                 mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
@@ -256,6 +257,7 @@ public class OrderUtil {
                     log.info("若为代付订，则置商户代付订单为成功，当前订单号：" + orderSu.getOrderId() + "，当前订单类型：" + orderSu.getOrderType() + "");
                     if (Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(orderSu.getOrderType().toString())) {
                         ThreadUtil.execute(() -> {  //如果是入款订单,当前银行卡的系统业务余额会增加
+                            log.info("【更新银行卡余额  出款减少】");
                             String orderQr = order.getOrderQr();
                             String[] split = orderQr.split(":");
                             String bankAccount = split[2];
