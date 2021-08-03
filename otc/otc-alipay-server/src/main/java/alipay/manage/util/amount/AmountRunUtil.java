@@ -423,6 +423,7 @@ public class AmountRunUtil {
         acountR = SYSTEM_APP;
         accountW = orderAccount;
         runOrderType = getRunOrderType(orderType);
+        amount = new BigDecimal("-1").multiply(amount);//如果是扣款则为 负数显示
         Result amountRun = amountRun(associatedId, orderAccount, runOrderType, amount, generationIp, acountR, accountW, runType, amountType, dealDescribe);
         if (amountRun.isSuccess()) {
             return amountRun;
@@ -730,5 +731,24 @@ public class AmountRunUtil {
 
         Result add = add(PROFIT_AMOUNT_BANK_R, wit.getUserId(), wit.getOrderId(), wit.getAmount(), wit.getRetain2(), "当前卡商佣金退回，当前退回佣金为：" + wit.getAmount(), RUNTYPE_ARTIFICIAL);
         return add;
+    }
+
+    public Result addBankprofitAmount(Amount alipayAmount, String clientIP, String descr) {
+        Result add = add(PROFIT_AMOUNT_BANK_R, alipayAmount.getUserId(), alipayAmount.getOrderId(), alipayAmount.getAmount(), clientIP, "当前卡商佣金退回，当前退回佣金为：" + alipayAmount.getAmount(), RUNTYPE_ARTIFICIAL);
+        return add;
+    }
+
+    public Result addBankprofitAmount(Amount alipayAmount, String clientIP) {
+        return addBankprofitAmount(alipayAmount, clientIP, "当前卡商佣金退回，当前退回佣金为：" + alipayAmount.getAmount());
+    }
+
+
+    public Result deleteBankprofit(Amount alipayAmount, String clientIP, String descr) {
+        Result add = add(PROFIT_AMOUNT_BANK_R, alipayAmount.getUserId(), alipayAmount.getOrderId(), alipayAmount.getAmount(), clientIP, descr, RUNTYPE_ARTIFICIAL);
+        return add;
+    }
+
+    public Result deleteBankprofit(Amount alipayAmount, String clientIP) {
+        return deleteBankprofit(alipayAmount, clientIP, "手动增加卡商佣金：" + alipayAmount.getAmount() + "，当前处理人：" + alipayAmount.getApproval());
     }
 }

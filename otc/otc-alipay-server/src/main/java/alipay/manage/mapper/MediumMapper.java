@@ -60,7 +60,7 @@ public interface MediumMapper {
      * @param amount
      * @return
      */
-    @Select("select * from alipay_medium where status = 1 and  (( mountSystem + #{amount}) < mountLimit ) ")
+    @Select("select * from alipay_medium where status = 1  and  isDeal = '2'    ")
     List<Medium> findBankByAmount(@Param("amount") BigDecimal amount);
 
 

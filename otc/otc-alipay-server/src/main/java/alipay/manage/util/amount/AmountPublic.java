@@ -1,6 +1,7 @@
 package alipay.manage.util.amount;
 
 import alipay.config.redis.RedisLockUtil;
+import alipay.manage.bean.Amount;
 import alipay.manage.bean.UserFund;
 import alipay.manage.service.RunOrderService;
 import alipay.manage.service.UserInfoService;
@@ -217,10 +218,24 @@ public class AmountPublic extends Util {
         return amountConfig.addAmountBalance(fund, wit.getAmount(), Util.ADD_BANK_PROFIT, new BigDecimal(0), wit.getOrderId());
     }
 
+
+    /**
+     * 卡商佣金扣减
+     *
+     * @param balance
+     * @return
+     */
+    public Result deleteBankprofit(UserFund userFund, BigDecimal balance, String orderId) {
+        return amountConfig.deleteAmountBalance(userFund, balance, Util.DELETET_BANK_PROFIT_AMOUNT, orderId);
+    }
+
+    public Result addBankprofitAmount(UserFund userFund, BigDecimal balance, String orderId) {
+        return amountConfig.addAmountBalance(userFund, balance, Util.ADD_BANK_PROFIT_AMOUNT, new BigDecimal(0), orderId);
+    }
+
     public Result witBankCardAmountFee(Withdraw wit) {
         UserFund fund = new UserFund();
         fund.setUserId(wit.getUserId());
         return amountConfig.addAmountBalance(fund, wit.getFee(), Util.ADD_BANK_PROFIT, new BigDecimal(0), wit.getOrderId());
-
     }
 }

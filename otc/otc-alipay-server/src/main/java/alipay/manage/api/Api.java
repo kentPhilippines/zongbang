@@ -325,6 +325,69 @@ public class Api {
         }
 
         switch (amountType) {
+
+            case Common.Deal.AMOUNT_ORDER_DELETE_PROFIT:
+                if (orderStatus.equals(Common.Deal.AMOUNT_ORDER_SU)) {//减款订单成功，
+                    int a = amountDao.updataOrder(orderId.toString(), orderStatus.toString(), approval.toString(), comment.toString());
+                    if (a > 0 && a < 2) {
+                        logUtil.addLog(request, "当前发起订单修改操作，减款订单号：" + amount.getOrderId() + "，减款订单置为成功，减款用户：" + amount.getUserId() + "，操作人：" + amount.getAccname() + "", amount.getAccname());
+                        return Result.buildSuccessMessage("操作成功");
+                    }
+                } else if (orderStatus.equals(Common.Deal.AMOUNT_ORDER_ER)) {//减款失败，资金退回
+                    int a = amountDao.updataOrder(orderId.toString(), orderStatus.toString(), approval.toString(), comment.toString());
+                    if (a > 0 && a < 2) {
+                        UserFund userFund = new UserFund();  // userInfoServiceImpl.findUserFundByAccount(amount.getUserId());
+                        userFund.setUserId(amount.getUserId());
+                        Result addAmountAdd = amountPublic.addBankprofitAmount(userFund, amount.getAmount(), amount.getOrderId());
+                        if (addAmountAdd.isSuccess()) {
+                            Result deleteAmount = amountRunUtil.addBankprofitAmount(amount, clientIP, "扣减卡商佣金订单驳回，还原扣减资金");
+                            if (deleteAmount.isSuccess()) {
+                                logUtil.addLog(request, "当前扣款订单置为失败，资金原路退回，扣款订单号：" + amount.getOrderId() + "，扣款用户：" + amount.getUserId() + "，操作人：" + amount.getAccname() + "", amount.getAccname());
+                                return Result.buildSuccessMessage("操作成功");
+                            }
+                        }
+                    }
+                } else if (orderStatus.equals(Common.Deal.AMOUNT_ORDER_HE)) {
+                    int a = amountDao.updataOrder(orderId.toString(), orderStatus.toString(), approval.toString(), comment.toString());
+                    if (a > 0 && a < 2) {
+                        UserFund userFund = new UserFund();//userInfoServiceImpl.findUserFundByAccount(amount.getUserId());
+                        userFund.setUserId(amount.getUserId());
+                        Result deleteAmount2 = amountPublic.deleteBankprofit(userFund, amount.getAmount(), amount.getOrderId());
+                        if (deleteAmount2.isSuccess()) {
+                            Result deleteAmount = amountRunUtil.deleteBankprofit(amount, clientIP);
+                            if (deleteAmount.isSuccess()) {
+                                logUtil.addLog(request, "当前发起扣款操作，扣款订单号：" + amount.getOrderId() + "，扣款成功，扣款用户：" + amount.getUserId() + "，操作人：" + amount.getAccname() + "", amount.getAccname());
+                                return Result.buildSuccessMessage("操作成功");
+                            }
+                        }
+                    }
+                }
+                return Result.buildFailMessage("人工处理加扣款失败");
+
+
+            case Common.Deal.AMOUNT_ORDER_ADD_PROFIT:
+                log.info("进入卡商手动加佣金接口，当前订单号：" + orderId.toString() + "");
+                if (orderStatus.equals(Common.Deal.AMOUNT_ORDER_SU)) {//佣金增加成功
+                    int a = amountDao.updataOrder(orderId.toString(), orderStatus.toString(), approval.toString(), comment.toString());
+                    if (a > 0 && a < 2) {
+                        UserFund userFund = new UserFund();    // userInfoServiceImpl.findUserFundByAccount(amount.getUserId());
+                        userFund.setUserId(amount.getUserId());
+                        Result result = amountPublic.addBankprofitAmount(userFund, amount.getAmount(), orderId.toString());
+                        if (result.isSuccess()) {
+                            Result result1 = amountRunUtil.addBankprofitAmount(amount, clientIP, "手动增加卡商佣金，当前操作人：" + amount.getApproval() + "，当前操作理由" + amount.getComment());
+                            if (result1.isSuccess()) {
+                                logUtil.addLog(request, "当前发起加钱操作，加款订单号：" + amount.getOrderId() + "，加款成功，加款用户：" + amount.getUserId() + "，操作人：" + amount.getAccname() + "", amount.getAccname());
+                                return Result.buildSuccessMessage("操作成功");
+                            }
+                        }
+                    }
+                } else {//佣金增加失败
+                    int a = amountDao.updataOrder(orderId.toString(), orderStatus.toString(), approval.toString(), comment.toString());
+                    if (a > 0 && a < 2) {
+                        logUtil.addLog(request, "当前发起订单修改操作，加款订单号：" + amount.getOrderId() + "，加款订单置为失败，加款用户：" + amount.getUserId() + "，操作人：" + amount.getAccname() + "", amount.getAccname());
+                        return Result.buildSuccessMessage("操作成功");
+                    }
+                }
             case Common.Deal.AMOUNT_ORDER_ADD:
                 if (orderStatus.equals(Common.Deal.AMOUNT_ORDER_SU)) {//加款订单成功，
                     int a = amountDao.updataOrder(orderId.toString(), orderStatus.toString(), approval.toString(), comment.toString());
@@ -639,7 +702,6 @@ public class Api {
         if (userFund == null) {
             throw new BusinessException("此用户不存在");
         }
-
         if (amountType.toString().equals(Common.Deal.AMOUNT_ORDER_DELETE_FREEZE)) {
             BigDecimal balance = userFund.getAccountBalance();
             BigDecimal deduct = new BigDecimal(amount.toString());
@@ -662,16 +724,30 @@ public class Api {
         } else if (amountType.toString().equals(Common.Deal.AMOUNT_ORDER_DELETE)) {
             BigDecimal balance = userFund.getAccountBalance();
             BigDecimal deduct = new BigDecimal(amount.toString());
-                Result deleteAmount2 = amountPublic.deleteAmount(userFund, deduct, orderId.toString());
-                if (deleteAmount2.isSuccess()) {
-                    Result deleteAmount = amountRunUtil.deleteAmount(alipayAmount, clientIP);
-                    if (deleteAmount.isSuccess()) {
+            if ("2".equals(stringObjectMap.get("type"))) {
+                Result result = amountPublic.deleteBankprofit(userFund, deduct, orderId.toString());
+                if (result.isSuccess()) {
+                    Result result1 = amountRunUtil.deleteBankprofit(alipayAmount, clientIP);
+                    if (result1.isSuccess()) {
                         int i = userInfoServiceImpl.insertAmountEntitys(alipayAmount);
                         if (i == 1) {
                             return Result.buildSuccessMessage("创建订单成功");
                         } else {
                             return Result.buildFailMessage("创建订单失败");
                         }
+                    }
+                }
+            }
+            Result deleteAmount2 = amountPublic.deleteAmount(userFund, deduct, orderId.toString());
+            if (deleteAmount2.isSuccess()) {
+                Result deleteAmount = amountRunUtil.deleteAmount(alipayAmount, clientIP);
+                if (deleteAmount.isSuccess()) {
+                    int i = userInfoServiceImpl.insertAmountEntitys(alipayAmount);
+                    if (i == 1) {
+                        return Result.buildSuccessMessage("创建订单成功");
+                    } else {
+                        return Result.buildFailMessage("创建订单失败");
+                    }
                     }
                 }
         } else if (amountType.toString().equals(Common.Deal.AMOUNT_ORDER_DELETE_QUOTA)) {

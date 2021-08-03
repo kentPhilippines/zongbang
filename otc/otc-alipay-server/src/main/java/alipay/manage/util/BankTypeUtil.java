@@ -157,26 +157,27 @@ public class BankTypeUtil {
 
 
 		BANK_MAP.put("ZBCB", BankEnum.ZBCB.getBankId());
-		BANK_MAP.put("ZGCCB", BankEnum.ZGCCB.getBankId());
-		BANK_MAP.put("ZJKCCB", BankEnum.ZJKCCB.getBankId());
-		BANK_MAP.put("ZJNX", BankEnum.ZJNX.getBankId());
-		BANK_MAP.put("ZJTLCB", BankEnum.ZJTLCB.getBankId());
-		BANK_MAP.put("ZRCBANK", BankEnum.ZRCBANK.getBankId());
-		BANK_MAP.put("ZYCBANK", BankEnum.ZYCBANK.getBankId());
-		BANK_MAP.put("ZZBANK", BankEnum.ZZBANK.getBankId());
-		BANK_MAP.put("SPABANK", BankEnum.SPABANK.getBankId());
-		BANK_MAP.put("SPDB", BankEnum.SPDB.getBankId());
-		BANK_MAP.put("HXBANK", BankEnum.HXBANK.getBankId());
+        BANK_MAP.put("ZGCCB", BankEnum.ZGCCB.getBankId());
+        BANK_MAP.put("ZJKCCB", BankEnum.ZJKCCB.getBankId());
+        BANK_MAP.put("ZJNX", BankEnum.ZJNX.getBankId());
+        BANK_MAP.put("ZJTLCB", BankEnum.ZJTLCB.getBankId());
+        BANK_MAP.put("ZRCBANK", BankEnum.ZRCBANK.getBankId());
+        BANK_MAP.put("ZYCBANK", BankEnum.ZYCBANK.getBankId());
+        BANK_MAP.put("ZZBANK", BankEnum.ZZBANK.getBankId());
+        BANK_MAP.put("SPABANK", BankEnum.SPABANK.getBankId());
+        BANK_MAP.put("SPDB", BankEnum.SPDB.getBankId());
+        BANK_MAP.put("HXBANK", BankEnum.HXBANK.getBankId());
+        BANK_MAP.put("SZSNZ", BankEnum.SZSNZ.getBankId());
 
-		BANK_MAP_NAME.put("ABC", BankEnum.ABC.getBankNameCn());
-		BANK_MAP_NAME.put("SPDB", BankEnum.SPDB.getBankNameCn());
-		BANK_MAP_NAME.put("SPABANK", BankEnum.SPABANK.getBankNameCn());
-		BANK_MAP_NAME.put("ARCU", BankEnum.ARCU.getBankNameCn());
-		BANK_MAP_NAME.put("PSBC", BankEnum.PSBC.getBankNameCn());
-		BANK_MAP_NAME.put("ASCB", BankEnum.ASCB.getBankNameCn());
-		BANK_MAP_NAME.put("AYCB", BankEnum.AYCB.getBankNameCn());
-		BANK_MAP_NAME.put("BANKWF", BankEnum.BANKWF.getBankNameCn());
-		BANK_MAP_NAME.put("BGB", BankEnum.BGB.getBankNameCn());
+        BANK_MAP_NAME.put("ABC", BankEnum.ABC.getBankNameCn());
+        BANK_MAP_NAME.put("SPDB", BankEnum.SPDB.getBankNameCn());
+        BANK_MAP_NAME.put("SPABANK", BankEnum.SPABANK.getBankNameCn());
+        BANK_MAP_NAME.put("ARCU", BankEnum.ARCU.getBankNameCn());
+        BANK_MAP_NAME.put("PSBC", BankEnum.PSBC.getBankNameCn());
+        BANK_MAP_NAME.put("ASCB", BankEnum.ASCB.getBankNameCn());
+        BANK_MAP_NAME.put("AYCB", BankEnum.AYCB.getBankNameCn());
+        BANK_MAP_NAME.put("BANKWF", BankEnum.BANKWF.getBankNameCn());
+        BANK_MAP_NAME.put("BGB", BankEnum.BGB.getBankNameCn());
 		BANK_MAP_NAME.put("BHB", BankEnum.BHB.getBankNameCn());
 		BANK_MAP_NAME.put("BJBANK", BankEnum.BJBANK.getBankNameCn());
 		BANK_MAP_NAME.put("BJRCB", BankEnum.BJRCB.getBankNameCn());
@@ -300,16 +301,17 @@ public class BankTypeUtil {
 		BANK_MAP_NAME.put("ZBCB", BankEnum.ZBCB.getBankNameCn());
 		BANK_MAP_NAME.put("SPDB", BankEnum.SPDB.getBankNameCn());
 
-		BANK_MAP_NAME.put("ZBCB", BankEnum.ZBCB.getBankNameCn());
-		BANK_MAP_NAME.put("ZGCCB", BankEnum.ZGCCB.getBankNameCn());
-		BANK_MAP_NAME.put("ZJKCCB", BankEnum.ZJKCCB.getBankNameCn());
-		BANK_MAP_NAME.put("ZJNX", BankEnum.ZJNX.getBankNameCn());
-		BANK_MAP_NAME.put("ZJTLCB", BankEnum.ZJTLCB.getBankNameCn());
-		BANK_MAP_NAME.put("ZRCBANK", BankEnum.ZRCBANK.getBankNameCn());
-		BANK_MAP_NAME.put("ZYCBANK", BankEnum.ZYCBANK.getBankNameCn());
-		BANK_MAP_NAME.put("ZZBANK", BankEnum.ZZBANK.getBankNameCn());
-		BANK_MAP_NAME.put("HXBANK", BankEnum.HXBANK.getBankNameCn());
-	}
+        BANK_MAP_NAME.put("ZBCB", BankEnum.ZBCB.getBankNameCn());
+        BANK_MAP_NAME.put("ZGCCB", BankEnum.ZGCCB.getBankNameCn());
+        BANK_MAP_NAME.put("ZJKCCB", BankEnum.ZJKCCB.getBankNameCn());
+        BANK_MAP_NAME.put("ZJNX", BankEnum.ZJNX.getBankNameCn());
+        BANK_MAP_NAME.put("ZJTLCB", BankEnum.ZJTLCB.getBankNameCn());
+        BANK_MAP_NAME.put("ZRCBANK", BankEnum.ZRCBANK.getBankNameCn());
+        BANK_MAP_NAME.put("ZYCBANK", BankEnum.ZYCBANK.getBankNameCn());
+        BANK_MAP_NAME.put("ZZBANK", BankEnum.ZZBANK.getBankNameCn());
+        BANK_MAP_NAME.put("HXBANK", BankEnum.HXBANK.getBankNameCn());
+        BANK_MAP_NAME.put("SZSNZ", BankEnum.SZSNZ.getBankNameCn());
+    }
 
 
 	public static String getBank(String bankcode) {

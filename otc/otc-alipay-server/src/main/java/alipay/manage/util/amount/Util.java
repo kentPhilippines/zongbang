@@ -20,8 +20,10 @@ public class Util {
     protected static final String DELETE_QUOTA = "DELETE_QUOTA";//减少授权额度
 
 
-    protected static final String DELETET_BANK_PROFIT = "DELETET_BANK_PROFIT";//卡商押金扣减
+    protected static final String DELETET_BANK_PROFIT = "DELETET_BANK_PROFIT";//卡商佣金扣减 代付专用
+    protected static final String DELETET_BANK_PROFIT_AMOUNT = "DELETET_BANK_PROFIT_AMOUNT";//卡商佣金扣减  手动扣减专用
     protected static final String ADD_BANK_PROFIT = "ADD_BANK_PROFIT";//卡商押金退回
+    protected static final String ADD_BANK_PROFIT_AMOUNT = "ADD_BANK_PROFIT_AMOUNT";//卡商佣金增加
 
 
 }

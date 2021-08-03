@@ -246,7 +246,7 @@ public class RechargeContorller {
 		   return Result.buildFailResult("资金密码错误；");
 	   }
 	   if ("1".equals(map.get(TYPE))) {
-		   BigDecimal balance = userFund.getAccountBalance();
+		   BigDecimal balance = userFund.getAccountBalance().subtract(userFund.getSumProfit());
 		   BigDecimal amount = new BigDecimal(map.get(AMOUNT).toString());
 		   if (balance.compareTo(amount.add(new BigDecimal("2"))) == -1) {
 			   return Result.buildFailResult("当前金额不足，请重新");
@@ -256,6 +256,11 @@ public class RechargeContorller {
 		   BigDecimal amount = new BigDecimal(map.get(AMOUNT).toString());
 		   if (balance.compareTo(amount.add(new BigDecimal("2"))) == -1) {
 			   return Result.buildFailResult("当前分润不足，请重新");
+		   }
+		   BigDecimal balance1 = userFund.getAccountBalance();
+		   BigDecimal amount1 = new BigDecimal(map.get(AMOUNT).toString());
+		   if (balance1.compareTo(amount1.add(new BigDecimal("2"))) == -1) {
+			   return Result.buildFailResult("当前金额不足，请重新");
 		   }
 	   }
 	   return Result.buildSuccessResult();

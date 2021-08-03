@@ -893,7 +893,7 @@ public class OrderUtil {
             return addFeeTransaction;
         }
 
-        if ("2".equals(wit.getWithdrawType())) {//卡商佣金退回
+        if ("2".equals(wit.getWithdrawType()) && "2".equals(wit.getRetain1())) {//卡商佣金退回
             Result result = amountPublic.addBankprofit(wit);
             if (!result.isSuccess()) {
                 return result;

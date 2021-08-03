@@ -343,7 +343,8 @@ public enum BankEnum {
 
     HSBC("BK0169", "汇丰银行"),
 
-    CCAB("BK0170", "长安银行");
+    CCAB("BK0170", "长安银行"),
+    SZSNZ("BK0171", "苏州农村商业银行");
 
     private String bankId;
 

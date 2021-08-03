@@ -232,26 +232,7 @@ public class MediumServiceImpl implements MediumService {
 
     @Override
     public List<Medium> findBankByAmount(BigDecimal amount, List<String> code) {
-        List<Medium> medList = new ArrayList<>();
-
-        if (null == code || code.size() == 0) {
-            return mediumDao.findBankByAmount(amount);
-        } else {
-
-
-            List<Medium> bankByAmountAndAttr = mediumDao.findBankByAmountAndAttr(code);
-         /*   for (Medium med : bankByAmountAndAttr) {               关闭银行卡限额
-                Boolean a = Boolean.FALSE;
-                if (Double.valueOf(med.getMountNow()) + amount.toBigInteger().doubleValue() < Double.valueOf(med.getMountLimit())) {
-                    medList.add(med);
-                    a = Boolean.TRUE;
-                }
-                if (!a && Double.valueOf(med.getMountSystem()) + amount.toBigInteger().doubleValue() < Double.valueOf(med.getMountLimit())) {
-                    medList.add(med);
-                }
-            }*/
-            return bankByAmountAndAttr;
-        }
+      return mediumDao.findBankByAmount(amount);
     }
 
     @Override

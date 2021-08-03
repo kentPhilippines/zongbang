@@ -144,6 +144,51 @@ public class BankUtil {
 	private static final String WIT_LOCK = "WIT:LOCK:";//代付出款缓存标记
 
 	/**
+	 * 针对专门的卡商限制金额
+	 *
+	 * @param amount
+	 * @param userId
+	 * @return
+	 */
+
+	static List<String> userList3000 = new ArrayList<>();
+
+	/**
+	 * 存储当前代付缓存数据统计
+	 */
+	void saveWit(String userId, String orderId) {
+		String hashkeyCount = userId + orderId;
+		boolean hset = redisUtil.hset(WIT_BANK_COUNT + userId, hashkeyCount, orderId);
+		log.info("【储存代付锁定数据：" + hashkeyCount + "，储存结果为：" + hset + "】");
+	}
+
+	/**
+	 * 获取缓存代付金额
+	 *
+	 * @return
+	 */
+	boolean findAmountWit(String userId) {
+		Map<Object, Object> hmget = redisUtil.hmget(WIT_BANK_COUNT + userId);
+		log.info("【代付锁定数据：" + hmget.toString() + "】");
+		return hmget.size() > 0;
+	}
+
+	/**
+	 * 放开当前代付缓存数据
+	 */
+	public void openWit(String userId) {
+		log.info("【删除代付锁定数据为：" + WIT_BANK_COUNT + userId + "】");
+		redisUtil.del(WIT_BANK_COUNT + userId);
+
+	}
+
+	static {
+		userList3000.add("wuxin666");
+		userList3000.add("gx5566");
+		userList3000.add("gx0327");
+	}
+
+	/**
 	 * <p>选码的本地方法</p>
 	 *
 	 * @param orderNo 订单号
@@ -217,6 +262,11 @@ public class BankUtil {
 			if (ObjectUtil.isNull(qrcodeUser)) {
 				continue;
 			}
+
+			if (!limitAmountOpen(amount, qrcodeUser.getUserId())) {
+				log.info("当前银行卡只适合大额接单，卡商账号为：" + qrcodeUser.getUserId() + "，接单金额为：" + amount + "，银行卡号为：" + qr.getMediumNumber());
+				continue;
+			}
 			log.info("【账户数据：" + qrcodeUser.toString() + "】");
 			riskUtil.updataUserAmountRedis(qrcodeUser, flag);
 			String notify = qr.getMediumNumber() + qr.getMediumPhone() + dealAmount.toString();
@@ -228,6 +278,10 @@ public class BankUtil {
 				Integer time = LOCK_TIME_OPEN;
 				if (BankOpen.BANK_LIST.contains(qr.getMediumNumber())) {
 					time = LOCK_TIME_OPEN;
+				}
+				;
+				if (qr.getAccount().contains("工商") || qr.getAccount().contains("交通") || qr.getAccount().contains("招商")) {
+					time = LOCK_TIME;
 				}
 				;
 				redisUtil.set(notify, orderNo, Integer.valueOf(time));    //核心回调数据
@@ -248,35 +302,22 @@ public class BankUtil {
 	}
 
 	/**
-	 * 存储当前代付缓存数据统计
-	 */
-	void saveWit(String userId, String orderId) {
-		String hashkeyCount = userId + orderId;
-		boolean hset = redisUtil.hset(WIT_BANK_COUNT + userId, hashkeyCount, orderId);
-		log.info("【储存代付锁定数据：" + hashkeyCount + "，储存结果为：" + hset +"】");
-	}
-
-	/**
-	 * 获取缓存代付金额
+	 * 针对专门的卡商限制接单金额
 	 *
+	 * @param amount
+	 * @param userId
 	 * @return
 	 */
-	boolean findAmountWit(String userId) {
-		Map<Object, Object> hmget = redisUtil.hmget(WIT_BANK_COUNT + userId);
-		log.info("【代付锁定数据：" + hmget.toString() + "】");
-		return hmget.size() > 0;
+	Boolean limitAmountOpen(BigDecimal amount, String userId) {
+		log.info("开放接单权限，给部分卡商限制金额，卡商id：" + userList3000.toString() + "，当前进入卡商：" + userId + "");
+		if (userList3000.contains(userId)) {
+			if (amount.compareTo(new BigDecimal("3000")) > -1) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return  true;
 	}
-
-	/**
-	 * 放开当前代付缓存数据
-	 */
-	public void openWit(String userId) {
-		log.info("【删除代付锁定数据为：" + WIT_BANK_COUNT + userId + "】");
-		redisUtil.del(WIT_BANK_COUNT + userId);
-
-	}
-
-
-
 
 }

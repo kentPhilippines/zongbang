@@ -141,6 +141,12 @@ public class QrcodeContorller {
             mediumPhone = mediumId.getMediumPhone();
             String bankInfo = "";
 
+            String isWit = mediumNumber + mediumPhone + getAmount(order.getDealAmount());
+
+            boolean b1 = redisUtil.hasKey(isWit);
+            if (b1) {
+                return Result.buildFailMessage("当前银行卡限制出款，请等待");
+            }
             String bankCheck = RSAUtils.md5(RedisConstant.Queue.HEARTBEAT + mediumNumber);// 验证银行 卡在线标记
             boolean hasKey = redisUtil.hasKey(bankCheck);
             if (hasKey) {

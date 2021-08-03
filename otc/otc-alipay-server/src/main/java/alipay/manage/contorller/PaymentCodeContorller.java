@@ -222,9 +222,6 @@ public class PaymentCodeContorller {
         if (ObjectUtil.isNull(oldMedium)) {
             throw new UserException("获取用户信息为null", null);
         }
-        if (oldMedium.getMediumNumber().equals(medium.getMediumNumber()) && ObjectUtil.isNotNull(mediumServicel.findMediumByMediumNumber(medium.getMediumNumber()))) {
-            return Result.buildFailResult("修改账号重复");
-        }
         Boolean mediumBean = mediumServicel.updataMediumById(medium);
         if (mediumBean) {
             return Result.buildSuccessResult();

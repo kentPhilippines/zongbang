@@ -9,12 +9,9 @@ import java.security.NoSuchAlgorithmException;
 
 public class MD5 {
 	public static void main(String[] args) {
-		String number = "0.1_0.1";
-		String[] split = number.split("_");
-		for (String a : split) {
-			System.out.println(a);
-		}
-	}
+        String s = md5("11");
+        System.out.println(s);
+    }
 
 	private static final String UTF_8 = "utf-8";
 	private static final String ENCODE_TYPE = "md5";
