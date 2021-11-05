@@ -22,7 +22,7 @@ public class Task {
     HeartUtil heartUtil;
 
 
- //   @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "0/10 * * * * ?")
     public void task() {
         log.info("【执行更新队列操作】");
         heartUtil.clickHeart();
