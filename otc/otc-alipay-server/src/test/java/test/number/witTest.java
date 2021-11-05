@@ -124,7 +124,6 @@ public class witTest {
 		map.put("sign", md5);
 		String post = HttpUtil.post("127.0.0.1:9010/deal/findOrderSum", map);
 		System.out.println(post);
-
 	}
 
 	void wit(String userid1, String key1, String publickey) {
