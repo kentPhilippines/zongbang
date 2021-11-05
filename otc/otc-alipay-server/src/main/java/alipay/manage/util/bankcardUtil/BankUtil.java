@@ -79,9 +79,9 @@ public class BankUtil {
 	 *
 	 * @return
 	 */
-	public String findOrderBy(String amount, String phone, String bankNo) {
-		log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "，bankNo = " + bankNo + "】");
-		String notify = bankNo + phone + amount.toString();
+	public String findOrderBy(String amount, String phone, String bankNo,String payinfo) {
+		log.info("【当前寻找回调参数为：amount = " + amount + "，phone = " + phone + "，bankNo = " + bankNo + "，payinfo = "+payinfo+"】");
+		String notify = bankNo + phone + amount.toString()+payinfo;
 		Object object = redisUtil.get(notify);//可以找到即位当前充值订单的关联订单号
 		if (ObjectUtil.isNull(object)) {
 			return null;
@@ -195,10 +195,11 @@ public class BankUtil {
 	 * @param amount  金额
 	 * @param code    选吗CODE值
 	 * @param flag    是否为顶代结算模式  true  是     false   否
-	 * @return
+	 * @param payInfo
+     * @return
 	 * @throws ParseException
      */
-    public Medium findQr(String orderNo, BigDecimal amount, List<String> code, boolean flag) {
+    public Medium findQr(String orderNo, BigDecimal amount, List<String> code, boolean flag, String payInfo) {
 		Collection<String> strings = CollUtil.removeBlank(code);
 		code = new ArrayList<>();
 		for (String aa : strings) {
@@ -269,7 +270,7 @@ public class BankUtil {
 			}
 			log.info("【账户数据：" + qrcodeUser.toString() + "】");
 			riskUtil.updataUserAmountRedis(qrcodeUser, flag);
-			String notify = qr.getMediumNumber() + qr.getMediumPhone() + dealAmount.toString();
+			String notify = qr.getMediumNumber() + qr.getMediumPhone() + dealAmount.toString() + payInfo;
 			log.info("【核心回调控制数据：" + notify + "】");
 			Object object2 = redisUtil.get(notify);//回调数据
 			//	Object object = redisUtil.get(qr.getPhone());

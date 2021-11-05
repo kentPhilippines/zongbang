@@ -177,7 +177,7 @@ public class OrderTask {
 
 	void push(String msg) {
 		ThreadUtil.execute(() -> {
-            String url = "http://172.21.97.71:8888/api/send?text=";
+            String url = "http://10.170.0.4:8888/api/send?text=";
             String test = msg + "，触发时间：" + DatePattern.NORM_DATETIME_FORMAT.format(new Date());
             test = HttpUtil.encode(test, "UTF-8");
             String id = "&id=";

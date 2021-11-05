@@ -133,6 +133,7 @@ public class QrcodeContorller {
         String mediumHolder = "";
         String account = "";
         String mediumPhone = "";
+        Withdraw wit = withdrawServiceImpl.findOrderId(order.getAssociatedId());
         if (StrUtil.isEmpty(order.getOrderQr())) {// 第一次进入绑定 银行卡， 这个地方需要 验证 银行卡是否在线
             Medium mediumId = mediumServiceImpl.findMediumId(bankCard);
             mediumNumber = mediumId.getMediumNumber();//卡号
@@ -153,7 +154,7 @@ public class QrcodeContorller {
                 return Result.buildFailMessage("当前银行卡未绑定监控，无法出款");
             }
             String amount1 = getAmount(order.getDealAmount());
-            String witNotify1 = mediumNumber + mediumPhone + amount1; //验证当前 银行卡是否处于出款状态
+            String witNotify1 = mediumNumber + mediumPhone + amount1 +  wit.getAccname(); //验证当前 银行卡是否处于出款状态
             Object o = redisUtil.get("WIT:" + witNotify1);
             if (null != o) {
                 return Result.buildFailMessage("当前银行卡 正在出款， 请更换银行卡出款");
@@ -172,7 +173,7 @@ public class QrcodeContorller {
             account = split[0];//开户行
             mediumPhone = split[3];
         }
-        Withdraw wit = withdrawServiceImpl.findOrderId(order.getAssociatedId());
+
         Map cardmap = new HashMap();
         cardmap.put("bank_name", wit.getBankName());
         cardmap.put("card_no", wit.getBankNo());

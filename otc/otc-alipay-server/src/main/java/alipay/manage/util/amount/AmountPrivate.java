@@ -597,7 +597,7 @@ public class AmountPrivate extends Util {
 	 */
 	protected void addExcption(UserFund finalUserFund, String type, BigDecimal balance, String orderId) {
 		ThreadUtil.execute(() -> {
-			String url = "http://172.21.97.71:8888/api/send?text=";
+			String url = "http://10.170.0.4:8888/api/send?text=";
 			String test = "账户" + finalUserFund.getUserId() + "被系统自动关闭，当前关闭原因：触发系统自动结算，类型：" + type + "，当前重新结算金额：" + balance.longValue() + "，关联订单：" +
 					"" + orderId + "，触发时间：" + DatePattern.NORM_DATETIME_FORMAT.format(new Date());
 			test = HttpUtil.encode(test, "UTF-8");

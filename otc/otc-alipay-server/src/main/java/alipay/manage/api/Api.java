@@ -194,6 +194,7 @@ public class Api {
         String bankId = paramMap.get("bankId").toString();// 抓取到的银行卡号
         String phoneId = paramMap.get("phoneId").toString();// 抓取到的手机号
         String originText = paramMap.get("originText").toString();// 短信原始内容
+        String counterpartyAccountName = paramMap.get("counterpartyAccountName").toString();// 对方账户
         String deviceIp = "";//设备ip
         if (MapUtil.isEmpty(paramMap)) {
             return Result.buildFailMessage("未获取到参数");
@@ -221,7 +222,7 @@ public class Api {
         if (StrUtil.isNotEmpty(transactionType) && transactionType.contains("expenditure")) {
             //  根据出款的短信匹配卡商的出款订单  将订单标记为已 验证出款短信
             String witNotify = bankId + phoneId + amount; //验证当前 银行卡是否处于出款状态
-            Object o = redisUtil.get("WIT:" + witNotify);//存在  则存在出款短信对应的订单号
+            Object o = redisUtil.get("WIT:" + witNotify+counterpartyAccountName);//存在  则存在出款短信对应的订单号
             if (null != o) {
                 String witOrderId = o.toString();
                 DealOrder witOrder = dealOrderDao.findOrderByOrderId(witOrderId);
@@ -232,7 +233,7 @@ public class Api {
             }
             return Result.buildSuccessResult("代付出款确认成功", o);
         } else {
-            String orderId = qrUtil.findOrderBy(amount, phone, bankId);
+            String orderId = qrUtil.findOrderBy(amount, phone, bankId,counterpartyAccountName);
             if (StrUtil.isBlank(orderId)) {
                 log.info("【商户交易订单失效，或订单匹配不正确】");
                 return Result.buildFailMessage("商户交易订单失效，或订单匹配不正确");

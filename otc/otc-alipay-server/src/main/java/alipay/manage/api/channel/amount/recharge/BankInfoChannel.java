@@ -4,6 +4,7 @@ import alipay.manage.api.config.PayOrderService;
 import alipay.manage.bean.DealOrderApp;
 import alipay.manage.bean.util.ResultDeal;
 import alipay.manage.util.bankcardUtil.CreateOrder;
+import cn.hutool.core.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import otc.common.PayApiConstant;
@@ -21,6 +22,11 @@ public class BankInfoChannel extends PayOrderService {
     @Override
     public Result deal(DealOrderApp dealOrderApp, String channel) throws Exception {
         log.info("【进入自营渠道，当前渠道银行卡转卡，当前交易预订单为：" + dealOrderApp.getOrderId() + "】");
+        if(StrUtil.isEmpty(dealOrderApp.getDealDescribe())){
+            return Result.buildFailMessage("付款人为空");
+        }else if("充值交易".equals(dealOrderApp.getDealDescribe())){
+            return Result.buildFailMessage("付款人为空");
+        }
         Result result = createOrder.dealAddOrder(dealOrderApp);
         log.info("【自营渠道返回数据为：" + result.toString() + " 】");
         if (!result.isSuccess()) {
