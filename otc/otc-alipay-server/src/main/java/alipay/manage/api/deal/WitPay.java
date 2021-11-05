@@ -308,7 +308,7 @@ public class WitPay extends PayOrderService {
             String test = msg + "，触发时间：" + DatePattern.NORM_DATETIME_FORMAT.format(new Date());
             test = HttpUtil.encode(test, "UTF-8");
             String id = "&id=";
-            String ids = "-1001166674710";
+            String ids = "-414940159";
             id += ids;
             String s = url + test + id;
             HttpUtil.get(s, 1000);
