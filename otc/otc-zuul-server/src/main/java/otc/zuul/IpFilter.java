@@ -39,7 +39,7 @@ public class IpFilter extends ZuulFilter {
     @Override
     public boolean shouldFilter() {
         //判断过滤器是否生效
-        return true;
+        return false;
     }
 
     @Override

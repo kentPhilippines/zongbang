@@ -103,7 +103,7 @@ public class CreateOrder {
         bankInfo = "";// 出款银行卡信息暂时为空， 该银行卡信息由 卡商去选择出款
         Result result = addOrder(bc, wit.getOrderId(), wit.getAppOrderId(), wit.getUserId(),
                 wit.getAmount().toString(), channnelId, channelFeeId,
-                flag, bankInfo, userFeeId, Boolean.FALSE, wit.getRetain2(), wit.getNotify(), null);
+                flag, bankInfo, userFeeId, Boolean.FALSE, wit.getRetain2(), wit.getNotify(), null,null);
         ThreadUtil.execute(() -> {
             corr(bc, null);
             if (result.isSuccess()) {
@@ -164,7 +164,7 @@ public class CreateOrder {
         Result result = addOrder(bc, dealApp.getOrderId(),
                 dealApp.getAppOrderId(), dealApp.getOrderAccount(), dealApp.getOrderAmount().toString(), channnelId,
                 channelFeeId, flag, bankInfo, userFeeId,
-                Boolean.FALSE, dealApp.getOrderIp(), dealApp.getNotify(), dealApp.getBack());
+                Boolean.FALSE, dealApp.getOrderIp(), dealApp.getNotify(), dealApp.getBack(),payInfo);
         if (!result.isSuccess()) {
             return result;
         }
@@ -230,7 +230,7 @@ public class CreateOrder {
         Result result = addOrder(bc, recharge.getOrderId(), recharge.getUserId(),
                 recharge.getOrderId(), recharge.getAmount().toString(),
                 channnelId, channelFeeId, flag, null, userFeeId,
-                Boolean.TRUE, null, null, null);
+                Boolean.TRUE, null, null, null,null);
         if (!result.isSuccess()) {
             return result;
         }
@@ -263,7 +263,7 @@ public class CreateOrder {
      * @return
      */
     Result addOrder(String orderId, String asOrder, String exTerId, String userId, String amount, String channeId, String channelIdFeeId, Boolean flag, String bankInfo,
-                    Integer userFeeId, Boolean isBankRechage, String ip, String notify, String back) {
+                    Integer userFeeId, Boolean isBankRechage, String ip, String notify, String back,String payer) {
         try {
             log.info("【开始创建本地订单，当前创建订单的关联订单为：" + asOrder + "】");
             log.info("【当前交易的渠道账号为：" + channeId + "】");
@@ -280,6 +280,7 @@ public class CreateOrder {
             order.setGenerationIp(ip);
             order.setNotify(notify);
             order.setBack(back);
+            order.setPayer(payer);
             order.setOrderAccount(userId);
             if (flag) {
                 /**

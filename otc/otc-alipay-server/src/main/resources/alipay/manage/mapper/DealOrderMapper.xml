@@ -28,6 +28,7 @@
     <result column="retain2" property="retain2" jdbcType="CHAR" />
     <result column="retain3" property="retain3" jdbcType="CHAR" />
     <result column="retain4" property="retain4" jdbcType="BIT"/>
+    <result column="payer" property="payer" jdbcType="VARCHAR"/>
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="alipay.manage.bean.DealOrder" extends="BaseResultMap" >
     <result column="dealDescribe" property="dealDescribe" jdbcType="LONGVARCHAR" />
@@ -93,7 +94,7 @@
   <sql id="Base_Column_List" >
     id, orderId, associatedId, orderStatus, dealAmount, dealFee, actualAmount, orderType, 
     orderAccount, orderQrUser, orderQr, externalOrderId, generationIp, notify, back, payImg ,
-    isNotify, createTime, submitTime, feeId, status, retain1, retain2, retain3, retain4,currency
+    isNotify, createTime, submitTime,payer, feeId, status, retain1, retain2, retain3, retain4,currency
   </sql>
   <sql id="Blob_Column_List" >
     dealDescribe
@@ -243,6 +244,8 @@
         </if>
         <if test="currency != null">
             currency,
+        </if> <if test="payer != null">
+      payer,
         </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -318,6 +321,8 @@
         </if>
         <if test="currency != null">
             #{currency},
+        </if><if test="payer != null">
+            #{payer},
         </if>
     </trim>
   </insert>
@@ -402,6 +407,8 @@
 
       <if test="record.dealDescribe != null" >
         dealDescribe = #{record.dealDescribe,jdbcType=LONGVARCHAR},
+      </if><if test="record.payer != null" >
+      payer = #{record.payer,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >

@@ -45,6 +45,9 @@ public class StorageApi {
 			String addFile = addFile(file);
             storageIds.add(addFile);
         }
+		for (String orderid : storageIds){
+			log.info(orderid);
+		}
         return Result.buildSuccessResult(storageIds);
     }
     

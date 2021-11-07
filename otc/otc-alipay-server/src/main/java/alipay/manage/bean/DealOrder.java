@@ -46,7 +46,15 @@ public class DealOrder implements Serializable{
     private String payInfo;                 //入款或者出款的短信消息
     private String currency;  ///货币类型
     private List orderQrUserList;
+    private String payer;
 
+    public String getPayer() {
+        return payer;
+    }
+
+    public void setPayer(String payer) {
+        this.payer = payer;
+    }
 
     public String getPayInfo() {
         return payInfo;

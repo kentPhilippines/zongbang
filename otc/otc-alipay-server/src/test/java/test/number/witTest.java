@@ -50,11 +50,16 @@ public class witTest {
         String userid3 = "632QP888";
         String key3 = "004475525F277F44BA4CDE4670B8E727";
         String publickey3 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCZhADxkdiJFcFaqamlhcxE+bzekfJJFH/qm6sSXg88J+L5q1uboF7LVhtx7t0oz855PED77GsuVbwYhx42ztr4DsU4+5YJEJ/OQL0In3zOkU58mCeTGBbdeoR3DxjBBIkrmC8p6FjdeGw75Gf2YAnImYji+OOv9SX7+kWYBm/yZwIDAQAB";
+/*
 
         String userid = "ceshishanghu";
         String key = "4BEB102F91F34C93A0489FE35F51A4E1";
         String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCkoAaE1PLJ640+p2KOHUFsoolMCnCW+YwuMwI7ZDgeaix6RrkhN3FBAYJsCm2FiKGsPUcyVm8eLonT+dxj7wClIjfQlmWufQ8ST5y35KXm8gjEqr5Kt5K7r+Oy5UM5shcmkEbNP5t6y4UO7Ey+dKjm08FYR0ugiDAL6WxFbKwBAQIDAQAB";
+*/
 
+		String userid = "laoshakk";
+		String key = "2BA8BAF3974940388A5962365B38B204";
+		String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCYbPkcXm9hylzinmNnXktOIJau0fNI2oQQ72sGQzrTVRP0G0pwU4H55wAnbGD4ghde4zirZd91yE0ZAtaVasNruAjQCCN0oOmrvh1NK+9W+E+w1O7B8Lbx9Pjnnpnu7j2vtc6uOW0zZfn+6P7AaAfbptitYGBAzycfuj3rK02FyQIDAQAB";
 
         for (int a = 0; a <= 0; a++) {
             ThreadUtil.execute(() -> {
@@ -155,7 +160,7 @@ public class witTest {
         postMap.put("userId", userid);
         System.out.println("请求参数：" + postMap.toString());
         long l1 = System.currentTimeMillis();
-        String post = HttpUtil.post("http://47.74.47.94:12324/deal/wit", postMap);
+        String post = HttpUtil.post("http://34.150.96.248:5055/api-alipay/deal/wit", postMap);
         long l = System.currentTimeMillis();
         long a = l - l1;
         System.out.println("相应结果集：" + post + " 处理时间：" + a);
@@ -183,10 +188,9 @@ public class witTest {
 */
 
 
-        String userid = "ceshishanghu";
-        String key = "4BEB102F91F34C93A0489FE35F51A4E1";
-        String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCkoAaE1PLJ640+p2KOHUFsoolMCnCW+YwuMwI7ZDgeaix6RrkhN3FBAYJsCm2FiKGsPUcyVm8eLonT+dxj7wClIjfQlmWufQ8ST5y35KXm8gjEqr5Kt5K7r+Oy5UM5shcmkEbNP5t6y4UO7Ey+dKjm08FYR0ugiDAL6WxFbKwBAQIDAQAB";
-
+        String userid = "jinxing";
+        String key = "51C2A8E4BBDB488C9E901F163A195BBC";
+        String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJA3kkGVMP3lTsWR6PtBSWFOtP+RmEEv4yWS3E4rIKG07rzX2f7sgQnm2CGld25s4lL9bWT8Hw9ulTpi1vNACHLXko0O/YyNuIfeUvfaXirBgWlErDlQ+hOFdhLle+vdITu+5JW08i+G9Z1gZkcdtk/UeomBuY0FNaLxx/dRCNyQIDAQAB";
         long amount = RandomUtil.randomLong(3000, 5000);
         Deal deal = new Deal();
         deal.setAmount(amount + "");//金额
@@ -197,7 +201,7 @@ public class witTest {
         deal.setOrderId(IdUtil.objectId());
         deal.setPassCode("BANK_R");
         deal.setSubject("订单交易");
-        deal.setUserid("USDT");  //to userid
+        deal.setUserId("张三");  //to userid
         Map<String, Object> objectToMap = MapUtil.objectToMap(deal);
         String createParam = createParam(objectToMap);
 		System.out.println("签名前请求串：" + createParam);
@@ -214,7 +218,7 @@ public class witTest {
         postMap.put("cipherText", publicEncrypt);
         postMap.put("userId", userid);
         System.out.println("请求参数：" + postMap.toString());
-        String post = HttpUtil.post("http://47.74.47.94:12324/deal/pay", postMap);
+        String post = HttpUtil.post("http://34.150.96.248:5055/api-alipay/deal/pay", postMap);
         System.out.println("相应结果集：" + post);
 
     }
@@ -230,8 +234,16 @@ class Deal {
 	private String sign;
 	private String applyDate;
 	private String subject;
-	private String userid;
+	private String userId;
 	private String pageUrl;
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
 
 	public String getAmount() {
 		return amount;
@@ -265,13 +277,7 @@ class Deal {
 		this.subject = subject;
 	}
 
-	public String getUserid() {
-		return userid;
-	}
 
-	public void setUserid(String userid) {
-		this.userid = userid;
-	}
 
 	public String getPageUrl() {
 		return pageUrl;
@@ -325,7 +331,7 @@ class Deal {
 				", sign='" + sign + '\'' +
 				", applyDate='" + applyDate + '\'' +
 				", subject='" + subject + '\'' +
-				", userid='" + userid + '\'' +
+				", userid='"  + '\'' +
 				'}';
 	}
 }
