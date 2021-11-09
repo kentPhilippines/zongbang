@@ -70,7 +70,9 @@ public interface UserFundMapper {
     List<UserFund> findUserByWeight(List<Object> asList2);
 
 
-    @Select("select * from alipay_user_fund where  accountBalance > 0  and    userType = 2 and userId in" +
-            " ( select userId from alipay_user_info where remitOrderState = 1 and `switchs` = 1 ) order by todayDealAmount desc")
-    List<UserFund> findBankUserId();
+    @Select("select * from alipay_user_fund where  accountBalance > 0  " +
+            " and    userType = 2 and userId in" +
+            " ( select userId from alipay_user_info where " +
+            "remitOrderState = 1 and `switchs` = 1 ) order by todayDealAmount desc ")
+    List<UserFund> findBankUserId(BigDecimal amount);
 }

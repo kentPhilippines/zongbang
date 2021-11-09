@@ -90,8 +90,11 @@ public class CreateOrder {
         userFeeId = rateFee.getId();
 
         //出款选卡算法
-        String bankInfoUser = getBankInfo(userId, accountInfo.getQueueList(), bc);//出款人
+        String bankInfoUser = getBankInfo(userId, accountInfo.getQueueList(), bc,wit.getAmount());//出款人
         if (StrUtil.isEmpty(bankInfoUser)) {
+            bankInfoUser =   "zhongbang-bank";
+        }
+        if(StrUtil.isEmpty(bankInfoUser)){
             return Result.buildFailMessage("暂无出款渠道");
         }
         channnelId = bankInfoUser;
@@ -106,9 +109,6 @@ public class CreateOrder {
                 flag, bankInfo, userFeeId, Boolean.FALSE, wit.getRetain2(), wit.getNotify(), null,null);
         ThreadUtil.execute(() -> {
             corr(bc, null);
-            if (result.isSuccess()) {
-                push(bankInfoUser);
-            }
         });
 
         return result;
@@ -367,7 +367,7 @@ public class CreateOrder {
         return Result.buildFailMessage("失败未知");
     }
 
-    String getBankInfo(String userId, String weight, String orderId) {
+    String getBankInfo(String userId, String weight, String orderId, BigDecimal amount) {
         /**
          * #################出款选卡逻辑################
          * 如果指定出款人出款则直接选中出款人直接出款，如果未指定出款人，则按照以下逻辑选择出款
@@ -380,7 +380,7 @@ public class CreateOrder {
         }
         List<UserFund> userFundList = null;
         //    if (StrUtil.isEmpty(weight)) {
-        userFundList = userFundService.findBankUserId();
+        userFundList = userFundService.findBankUserId(amount);
         //  } else {
         //    String[] split = weight.split(",");
         //      userFundList = userInfoServiceImpl.findUserByWeight(split);

@@ -57,8 +57,8 @@ public class BankUtil {
 	DateFormat formatter = new SimpleDateFormat(Common.Order.DATE_TYPE);
 	@Autowired
 	private MediumService mediumService;
-	private static final Integer LOCK_TIME = 600;
-	private static final Integer LOCK_TIME_OPEN = 300;
+	private static final Integer LOCK_TIME = 800;
+	private static final Integer LOCK_TIME_OPEN = 500;
 	private static final String WIT_BANK_COUNT = "WIT:BANK:COUNT:";//代付出款缓存数据统计
 
 
@@ -268,23 +268,22 @@ public class BankUtil {
 				log.info("当前银行卡只适合大额接单，卡商账号为：" + qrcodeUser.getUserId() + "，接单金额为：" + amount + "，银行卡号为：" + qr.getMediumNumber());
 				continue;
 			}
+			Integer time = 0;
 			log.info("【账户数据：" + qrcodeUser.toString() + "】");
 			riskUtil.updataUserAmountRedis(qrcodeUser, flag);
+			if (openPayment(qr.getAccount())) {//是否开启姓名验证
+				payInfo = "";
+			}
 			String notify = qr.getMediumNumber() + qr.getMediumPhone() + dealAmount.toString() + payInfo;
 			log.info("【核心回调控制数据：" + notify + "】");
 			Object object2 = redisUtil.get(notify);//回调数据
 			//	Object object = redisUtil.get(qr.getPhone());
 			boolean clickAmount = riskUtil.isClickAmount(qr.getQrcodeId(), amount, usercollect, flag);
 			if (ObjectUtil.isNull(object2) && clickAmount) {
-				Integer time = LOCK_TIME_OPEN;
+				time = LOCK_TIME_OPEN;
 				if (BankOpen.BANK_LIST.contains(qr.getMediumNumber())) {
 					time = LOCK_TIME_OPEN;
 				}
-				;
-				if (qr.getAccount().contains("工商") || qr.getAccount().contains("交通") || qr.getAccount().contains("招商")) {
-					time = LOCK_TIME;
-				}
-				;
 				redisUtil.set(notify, orderNo, Integer.valueOf(time));    //核心回调数据
 				//redisUtil.set(qr.getPhone(), qr.getPhone() + amount.toString(), Integer.valueOf( configServiceClientImpl.getConfig(ConfigFile.ALIPAY, ConfigFile.Alipay.QR_OUT_TIME).getResult().toString() ));
 				String hashkey = qr.getQrcodeId() + DateUtil.format(new Date(), Common.Order.DATE_TYPE);    //锁定金额数据
@@ -319,6 +318,33 @@ public class BankUtil {
 			}
 		}
 		return  true;
+	}
+
+
+	/**
+	 * bank_1("平安银行"),
+	 *     bank_2("中国银行"),
+	 *     bank_3("广西农信"),
+	 *     bank_4("长沙银行"),
+	 *     bank_5("广东农信"),
+	 *     bank_6("交通银行"),
+	 *     bank_7("河南农信"),
+	 *     bank_7("平安银行"),
+	 * @param bankName  返回true 说明当前 不需要姓名验证
+	 * @return
+	 */
+	boolean openPayment(String bankName){
+		if (bankName.contains("中国银行")
+				|| bankName.contains("平安")
+				|| bankName.contains("广西农村")
+				|| bankName.contains("广西农信")
+				|| bankName.contains("长沙银行")
+				|| bankName.contains("广东农信")
+				|| bankName.contains("河南农信")
+		) {
+			return true;
+		}
+		return false;
 	}
 
 }

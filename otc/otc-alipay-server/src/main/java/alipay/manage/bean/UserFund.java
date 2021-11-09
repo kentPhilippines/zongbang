@@ -31,6 +31,7 @@ public class UserFund implements Serializable{
     private BigDecimal todayProfit;            //当日接单利润【代理利润+接单利润=当日利润】
     private Integer todayOrderCount;        //当日接单笔数
     private BigDecimal todayAgentProfit;    //当日代理商利润【如果当前账户为商户则该数据为0】
+    private BigDecimal deposit;    //设置卡商押金
     private String userType;                //用户类型,商户1 码商2
     private String agent;                    //代理商id【如果存在代理商则存在数据,如果不存在代理商则为null】
     private String isAgent;                    //是否为代理商:1代理商2普通码商【分润结算类型看用户类型userType】
@@ -40,6 +41,14 @@ public class UserFund implements Serializable{
     private Integer version;                //版本号
     private String currency;
 
+
+    public BigDecimal getDeposit() {
+        return deposit;
+    }
+
+    public void setDeposit(BigDecimal deposit) {
+        this.deposit = deposit;
+    }
 
     public BigDecimal getTodayOtherWitAmount() {
         return todayOtherWitAmount;

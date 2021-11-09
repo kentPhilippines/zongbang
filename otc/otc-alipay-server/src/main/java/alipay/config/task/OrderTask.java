@@ -149,10 +149,6 @@ public class OrderTask {
             }
             ;
             UserInfo userInfo = accountApiServiceImpl.findautoWit(order.getUserId());
-            if (0 == userInfo.getAutoWit()) {
-                log.info("当前订单为手动推送出款,请人工手动审核推送");
-                continue;
-            }
             redis.set(KEY_WIT_PUSH + order.getOrderId(), order.getOrderId(), 200); //防止多个任务同时获取一个订单发起结算
             try {
                 List<RunOrder> runOrderList = RunOrderServiceimpl.findAssOrder(order.getOrderId());

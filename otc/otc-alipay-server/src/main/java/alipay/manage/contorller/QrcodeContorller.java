@@ -154,7 +154,7 @@ public class QrcodeContorller {
                 return Result.buildFailMessage("当前银行卡未绑定监控，无法出款");
             }
             String amount1 = getAmount(order.getDealAmount());
-            String witNotify1 = mediumNumber + mediumPhone + amount1 +  wit.getAccname(); //验证当前 银行卡是否处于出款状态
+            String witNotify1 = mediumNumber + mediumPhone + amount1 ; //验证当前 银行卡是否处于出款状态
             Object o = redisUtil.get("WIT:" + witNotify1);
             if (null != o) {
                 return Result.buildFailMessage("当前银行卡 正在出款， 请更换银行卡出款");

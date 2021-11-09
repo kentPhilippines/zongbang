@@ -2,6 +2,7 @@ package alipay.manage.service;
 
 import alipay.manage.bean.UserFund;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface UserFundService {
@@ -15,5 +16,5 @@ public interface UserFundService {
      */
     UserFund findUserInfoByUserId(String userId);
 
-    List<UserFund> findBankUserId();
+    List<UserFund> findBankUserId(BigDecimal amount);
 }
