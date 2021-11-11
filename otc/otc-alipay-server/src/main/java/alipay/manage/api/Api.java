@@ -588,6 +588,75 @@ public class Api {
     }
 
 
+
+    /**
+     * 后台置交易订单为成功
+     * @param param
+     * @param request
+     * @return
+     */
+    @PostMapping(PayApiConstant.Alipay.ORDER_API + PayApiConstant.Alipay.ORDER_ENTER_ORDER_BACK + "/{param:.+}")
+    public Result enterOrderBack(@PathVariable("param") String param, HttpServletRequest request) {
+        log.info("【请求交易的终端用户交易请求参数为：" + param + "】");
+        Map<String, Object> stringObjectMap = RSAUtils.retMapDecode(param, SystemConstants.INNER_PLATFORM_PRIVATE_KEY);
+        if (CollUtil.isEmpty(stringObjectMap)) {
+            log.info("【参数解密为空】");
+            return Result.buildFailMessage("参数为空");
+        }
+        Object obj = stringObjectMap.get("orderId");
+        if (ObjectUtil.isNull(obj)) {
+            return Result.buildFailMessage("未识别当前订单号");
+        }
+
+        Object user = stringObjectMap.get("userName");
+        if (ObjectUtil.isNull(user)) {
+            return Result.buildFailMessage("未识别当前操作人");
+        }
+        String orderId = obj.toString();//订单号
+        String userop = user.toString();//操作人
+        log.info("【当前调用人工处理订单回滚接口，当前订单号：" + orderId  + "，当前操作人：" + userop + "】");
+        DealOrder order = dealOrderDao.findOrderByOrderId(orderId);
+        String clientIP = HttpUtil.getClientIP(request);
+        if (StrUtil.isBlank(clientIP)) {
+            return Result.buildFailMessage("当前使用代理服务器 或是操作ip识别出错，不允许操作");
+        }
+        if (ObjectUtil.isNull(order)) {
+            return Result.buildFailMessage("当前订单不存在");
+        }
+        if (!order.getOrderStatus().equals(Common.Order.DealOrder.ORDER_STATUS_SU.toString())) {
+            return Result.buildFailMessage("当前订单状态不允许操作");
+        }
+       if(!"4".equals(order.getOrderType())){
+           log.info("【当前调用人工处理订单回滚接口，当前订单号：" + orderId +   "，当前操作人：" + userop + ",当前操作订单类型错误，当前订单类型为："+order.getOrderType()+"】");
+           return Result.buildFailMessage("当前订单不允许操作");
+       }
+
+        Result orderDealEr =  orderUtil.backOrder(order,   clientIP);
+
+        if(orderDealEr.isSuccess()){
+            return orderDealEr;
+        }
+        return Result.buildFailMessage("操作失败");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * 后台置交易订单为成功
+     * @param param
+     * @param request
+     * @return
+     */
     @PostMapping(PayApiConstant.Alipay.ORDER_API + PayApiConstant.Alipay.ORDER_ENTER_ORDER + "/{param:.+}")
     public Result enterOrder(@PathVariable("param") String param, HttpServletRequest request) {
         log.info("【请求交易的终端用户交易请求参数为：" + param + "】");

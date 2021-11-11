@@ -120,8 +120,17 @@ public class AmountRunUtil {
 
     private static final Integer PROFIT_AMOUNT_BANK_W_NUMBER = 38;//卡商佣金扣减
     private static final Integer PROFIT_AMOUNT_BANK_R_NUMBER = 39;//卡商佣金增加
+    public static final Integer BANK_CARD_BACK_NUMBER = 40;//卡商流水退回
     private static final String PROFIT_AMOUNT_BANK_W = "PROFIT_AMOUNT_BANK_W";
+    private static final String BANK_CARD_BACK = "BANK_CARD_BACK";
     private static final String PROFIT_AMOUNT_BANK_R = "PROFIT_AMOUNT_BANK_R";
+
+
+
+
+
+
+
 
 
     /**
@@ -620,6 +629,9 @@ public class AmountRunUtil {
             case PROFIT_AMOUNT_BANK_W:
                 runOrderType = PROFIT_AMOUNT_BANK_W_NUMBER;
                 break;
+            case BANK_CARD_BACK:
+                runOrderType = BANK_CARD_BACK_NUMBER;
+                break;
             default:
                 break;
         }
@@ -751,4 +763,17 @@ public class AmountRunUtil {
     public Result deleteBankprofit(Amount alipayAmount, String clientIP) {
         return deleteBankprofit(alipayAmount, clientIP, "手动增加卡商佣金：" + alipayAmount.getAmount() + "，当前处理人：" + alipayAmount.getApproval());
     }
+
+
+    public Result addBackBank(String username,String orderId,BigDecimal amount,String ip) {
+        Result add = add(BANK_CARD_BACK, username, orderId, amount, ip, "当前卡商佣金退回，当前退回佣金为：" + amount, RUNTYPE_ARTIFICIAL);
+        return add;
+    }
+    public Result deleteBackBank(String username,String orderId,BigDecimal amount,String ip) {
+        Result add = delete(BANK_CARD_BACK, username, orderId, amount, ip, "当前卡商佣金退回，当前退回佣金为：" + amount, RUNTYPE_ARTIFICIAL);
+        return add;
+    }
+
+
+
 }

@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import otc.bean.alipay.Medium;
 import otc.bean.dealpay.Recharge;
 import otc.bean.dealpay.Withdraw;
 
@@ -355,5 +356,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean updatePayImg(String orderId, String qrcodeId) {
         return dealOrderMapper.updatePayImg(orderId, qrcodeId);
+    }
+    @Resource
+    MediumMapper mediumDao;
+    @Override
+    public boolean updateBankAmount(String bankAccount, String orderId) {
+        Medium medium =   mediumDao.findBank(bankAccount);
+        String mountSystem = medium.getMountSystem();//当前银行卡系统余额  【系统内部业务余额】
+       int i =  dealOrderMapper.updateBankAmount(orderId,mountSystem);
+        return i>0;
     }
 }

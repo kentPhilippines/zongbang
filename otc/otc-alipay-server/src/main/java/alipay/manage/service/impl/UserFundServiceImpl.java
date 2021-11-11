@@ -5,6 +5,8 @@ import alipay.manage.bean.UserFund;
 import alipay.manage.mapper.DealOrderMapper;
 import alipay.manage.mapper.UserFundMapper;
 import alipay.manage.service.UserFundService;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import org.springframework.stereotype.Component;
 import otc.bean.alipay.Medium;
 
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserFundServiceImpl implements UserFundService {
+	public static final Log log = LogFactory.get();
+
 	@Resource
 	UserFundMapper userFundDao;
 
@@ -38,16 +42,30 @@ public class UserFundServiceImpl implements UserFundService {
 		List<UserFund>  fundList  = new ArrayList<>();
 		List<UserFund> bankUser = userFundDao.findBankUserId(amount);
 		List<DealOrder> orderList = orderMapper.findWaitWitUser();
-		ConcurrentHashMap<String, DealOrder> qrCollect = orderList.stream().collect(Collectors.toConcurrentMap(DealOrder::getOrderQrUser, Function.identity(), (o1, o2) -> o1, ConcurrentHashMap::new));
-		List<String> user = new ArrayList<>();
-		for(UserFund fund : bankUser){
-			DealOrder dealOrder = qrCollect.get(fund.getUserId());
-			BigDecimal dealAmount = dealOrder.getDealAmount();//正在处理金额
-			BigDecimal deposit = fund.getDeposit();
-			BigDecimal divide = deposit.subtract(dealAmount);
-			if(amount.doubleValue()<divide.doubleValue()){
-				fundList.add(fund);
+		for (DealOrder order : orderList){
+			log.info(order.getOrderQrUser());
+			log.info(order.getDealAmount().toString());
+		}
+		try {
+			ConcurrentHashMap<String, DealOrder> qrCollect = orderList.stream().collect(Collectors.toConcurrentMap(DealOrder::getOrderQrUser, Function.identity(), (o1, o2) -> o1, ConcurrentHashMap::new));
+
+			for(UserFund fund : bankUser){
+				log.info(fund.getDeposit().toString());
+				log.info(qrCollect.toString());
+				DealOrder dealOrder = qrCollect.get(fund.getUserId());
+				if(null == dealOrder ){
+					continue;
+				}
+				BigDecimal dealAmount = dealOrder.getDealAmount();//正在处理金额
+				BigDecimal deposit = fund.getDeposit();
+				BigDecimal divide = deposit.subtract(dealAmount);
+				if(amount.doubleValue()<divide.doubleValue()){
+					fundList.add(fund);
+				}
 			}
+		}catch (Throwable e){
+			log.error("选择出款卡商异常",e.getMessage(),e);
+			fundList = bankUser;
 		}
 		return fundList;
 	}

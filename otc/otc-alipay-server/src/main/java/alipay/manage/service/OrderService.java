@@ -178,4 +178,13 @@ public interface OrderService {
      * @return
      */
     boolean updatePayImg(String orderId, String qrcodeId);
+
+
+	/**
+	 * 修改订单 标记银行卡余额
+	 * @param bankAccount
+	 * @param orderId
+	 * @return
+	 */
+	boolean updateBankAmount(String bankAccount, String orderId);
 }

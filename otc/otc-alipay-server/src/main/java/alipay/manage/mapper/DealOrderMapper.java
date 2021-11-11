@@ -170,4 +170,6 @@ public interface DealOrderMapper {
     @Select(" SELECT sum(dealAmount) as  dealAmount , orderQrUser as orderQrUser  FROM  alipay_deal_order  " +
             "WHERE  orderStatus  = 1   GROUP  by orderQrUser")
     List<DealOrder> findWaitWitUser();
+    @Update("update alipay_deal_order set bankAmountNow = #{mountSystem} where orderId = #{orderId} ")
+    int updateBankAmount( @Param("orderId") String orderId, @Param("mountSystem") String mountSystem);
 }

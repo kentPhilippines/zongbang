@@ -60,7 +60,7 @@ public interface MediumMapper {
      * @param amount
      * @return
      */
-    @Select("select * from alipay_medium where status = 1  and  isDeal = '2'   and black = 1  ")
+    @Select("select * from alipay_medium where status = 1  and  isDeal = '2'   and black = 1   and  amount + mountSystem  < mountLimit   ")
     List<Medium> findBankByAmount(@Param("amount") BigDecimal amount);
 
 
@@ -89,7 +89,6 @@ public interface MediumMapper {
     @Select("select * from alipay_medium where   mediumNumber = #{cardInfo}  and  qrcodeId = #{userId}")
     Medium findMediumByBankAndId(@Param("cardInfo") String cardInfo, @Param("userId") String userId);
 
-    @Cacheable(cacheNames = {MEDIUMBANK}, unless = "#result == null")
     @Select("select * from alipay_medium where   mediumNumber = #{bankInfo} ")
     Medium findBank(@Param("bankInfo") String bankInfo);
 

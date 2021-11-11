@@ -23,6 +23,7 @@ public class MD5 {
 		map.put("statusdesc", "成功");
 		String sign = CheckUtils.getSign(map,  "A0CA646839A94CCD8FE87C3ABF04D786");
 		map.put("sign", sign);
+		System.out.println(map.toString());
 		send(url,  "BA20211109132534817873154", map, true);
 
 

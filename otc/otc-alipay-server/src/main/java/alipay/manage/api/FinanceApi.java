@@ -140,7 +140,8 @@ public class FinanceApi {
                             logger.info("【当前订单已推送，状态未修改，当前订单号：" + witOrder.getOrderId() + "】");
                         }
                     });
-                } catch (Exception e) {
+                } catch (Throwable e) {
+                    logger.error("推送异常",e);
                     return Result.buildFailMessage("代付渠道未接通或渠道配置错误，请联系技术人员处理");
                 }
                 return withdraw;

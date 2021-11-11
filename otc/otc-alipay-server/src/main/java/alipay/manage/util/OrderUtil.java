@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -241,30 +242,31 @@ public class OrderUtil {
                 ThreadUtil.execute(() -> {//更新风控数据 统计数据等
                     log.info("更新风控数据，当前订单号：" + order.getOrderId() + "");
                     DealOrder orderSu = orderServiceImpl.findOrderStatus(orderId);
+                    String bankAccount = "";
                     if (orderSu.getOrderStatus().toString().equals(OrderDealStatus.成功.getIndex().toString())) {
                         riskUtil.orderSu(order);
                         if (order.getOrderType().equals(Common.Order.ORDER_TYPE_DEAL.toString()) || order.getOrderType().equals(Common.Order.ORDER_TYPE_BANKCARD_R.toString())) {
-                            ThreadUtil.execute(() -> {  //如果是入款订单,当前银行卡的系统业务余额会增加
+                             //如果是入款订单,当前银行卡的系统业务余额会增加
                                 log.info("【更新银行卡余额  入款增加】");
                                 String orderQr = order.getOrderQr();
                                 log.info("[当前更新银行卡：" + orderQr + "]");
                                 String[] split = orderQr.split(":");
-                                String bankAccount = split[2];
+                                  bankAccount = split[2];
                                 mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
-                            });
                         }
                     }
                     log.info("若为代付订，则置商户代付订单为成功，当前订单号：" + orderSu.getOrderId() + "，当前订单类型：" + orderSu.getOrderType() + "");
                     if (Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(orderSu.getOrderType().toString())) {
-                        ThreadUtil.execute(() -> {  //如果是入款订单,当前银行卡的系统业务余额会增加
+                         //如果是入款订单,当前银行卡的系统业务余额会增加
                             log.info("【更新银行卡余额  出款减少】");
                             String orderQr = order.getOrderQr();
                             String[] split = orderQr.split(":");
-                            String bankAccount = split[2];
+                              bankAccount = split[2];
                             mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
-                        });
                         settlementOrderApp(orderSu);//如果是代付订单，商户会瞬间成功
                     }
+                    log.info("修改订单银行卡余额表示标识，当前订单号：" + orderSu.getOrderId() + "，当前订单类型：" + orderSu.getOrderType() + "");
+                    boolean a =   orderServiceImpl.updateBankAmount(bankAccount,orderSu.getOrderId());
                 });
                 return Result.buildSuccessResult("订单修改成功");
             }
@@ -1114,6 +1116,63 @@ public class OrderUtil {
         });
         if(!execute.isSuccess()){
             return  execute;
+        }
+        return Result.buildSuccessMessage("渠道退款成功");
+    }
+    @Autowired
+    private RunOrderService runOrderServiceImpl;
+    /**
+     *
+     * 当前卡商出款交易订单回滚
+     * @param order
+     * @param username
+     * @param clientIP
+     * @return
+     */
+    private static final String AMOUNT_TYPE_R = "0";//对于当前账户来说是   收入
+    @Transactional
+    public Result backOrder(DealOrder order,  String clientIP) {
+        log.info("【进入卡商代付订单回滚方法，当前卡商代付订单号："+order.getOrderId()+"】");
+        /**
+         * 1，先查看是否有结算流水
+         * 1，如果有结算，按照结算流水退回，订单失败即可
+         * 1，如果没有结算，直接将订单失败
+         */
+        List<RunOrder> assOrder = runOrderServiceImpl.findAssOrder(order.getOrderId());
+        for(RunOrder run : assOrder){
+            if(run.getRunOrderType()==40){//流水类型为  卡商资金退回
+                return Result.buildSuccessMessage("渠道退款成功");
+            }
+        }
+        for(RunOrder run    : assOrder){
+            UserFund userFund = new UserFund();
+            userFund.setUserId(run.getOrderAccount());
+            String amountType = run.getAmountType();
+            if(AMOUNT_TYPE_R.equals(amountType)){//当前流水为收入流水 ， 现在我们要处理该笔流水为 支出
+                Result result1 = amountPublic.deleteAmount(userFund, run.getAmount(), run.getOrderId());
+                if (!result1.isSuccess()) {
+                    log.info("【当前单笔资金退回出错，请详细查看原因，当前代付订单号：" + order.getOrderId() + "】");
+                    return result1;
+                }
+                Result result2 = amountRunUtil.deleteBackBank(userFund.getUserId(),order.getOrderId(),run.getAmount(),clientIP);
+                if (!result2.isSuccess()) {
+                    log.info("【当前单笔资金退回出错，请详细查看原因，当前代付订单号：" + order.getOrderId() + "】");
+                    return result2;
+                }
+                return result2;
+            }else{//当前流水为 收入流水 现在我们处理该笔流水为  收入
+                Result result1 = amountPublic.addAmountAdd(userFund, run.getAmount(), run.getOrderId());
+                if (!result1.isSuccess()) {
+                    log.info("【当前单笔资金退回出错，请详细查看原因，当前订单号：" + order.getOrderId() + "】");
+                    return result1;
+                }
+                Result result2 = amountRunUtil.addBackBank(userFund.getUserId(),order.getOrderId(),run.getAmount(),clientIP);
+                if (!result2.isSuccess()) {
+                    log.info("【当前单笔资金退回出错，请详细查看原因，当前代付订单号：" + order.getOrderId() + "】");
+                    return result2;
+                }
+                return result2;
+            }
         }
         return Result.buildSuccessMessage("渠道退款成功");
     }

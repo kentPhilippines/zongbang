@@ -47,6 +47,16 @@ public class DealOrder implements Serializable{
     private String currency;  ///货币类型
     private List orderQrUserList;
     private String payer;
+    private String bankAmountNow;//交易完成之后银行卡余额
+
+
+    public String getBankAmountNow() {
+        return bankAmountNow;
+    }
+
+    public void setBankAmountNow(String bankAmountNow) {
+        this.bankAmountNow = bankAmountNow;
+    }
 
     public String getPayer() {
         return payer;
