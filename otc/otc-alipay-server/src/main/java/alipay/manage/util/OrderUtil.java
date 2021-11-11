@@ -1159,7 +1159,6 @@ public class OrderUtil {
                     log.info("【当前单笔资金退回出错，请详细查看原因，当前代付订单号：" + order.getOrderId() + "】");
                     return result2;
                 }
-                return result2;
             }else{//当前流水为 收入流水 现在我们处理该笔流水为  收入
                 Result result1 = amountPublic.addAmountAdd(userFund, run.getAmount(), run.getOrderId());
                 if (!result1.isSuccess()) {
@@ -1171,9 +1170,9 @@ public class OrderUtil {
                     log.info("【当前单笔资金退回出错，请详细查看原因，当前代付订单号：" + order.getOrderId() + "】");
                     return result2;
                 }
-                return result2;
             }
         }
+      dealOrderAppDao.updateOrderSu(order.getOrderId(), Common.Order.DealOrderApp.ORDER_STATUS_ER);
         return Result.buildSuccessMessage("渠道退款成功");
     }
 }
