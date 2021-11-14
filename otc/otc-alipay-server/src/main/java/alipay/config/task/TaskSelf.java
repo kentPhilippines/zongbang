@@ -44,6 +44,15 @@ public class TaskSelf {
         log.info("【开始放开银行卡限制】");
         banks.open();
     }
+    @Scheduled(cron = "0/5 * * * * ?")
+    public void updateBnakAmount() {
+        if (serverConfig.getServerPort() != 9010) {
+            log.info("当前任务端口号不正确");
+            return;
+        }
+        log.info("【开始放开银行卡限制】");
+        banks.updateBnakAmount();
+    }
 
     @Scheduled(cron = "0 0 1 * * ?")
     public void userTask() {

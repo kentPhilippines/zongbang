@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://rm-0iw59mny5050jpg70jo.mysql.japan.rds.aliyuncs.com:3306/otc_alipay?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://rm-0iw59mny5050jpg70jo.mysql.japan.rds.aliyuncs.com:3306/zhongbang-alipay?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: kent
     password: 9asdasd7dwgdo7$as8d)asd
     driverClassName: com.mysql.jdbc.Driver

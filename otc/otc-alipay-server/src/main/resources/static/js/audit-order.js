@@ -337,6 +337,20 @@ var auditOrderVM = new Vue({
 				initialPreviewConfig: initialPreviewConfig
 			});
 		},
+		enterOrderLock : function (orderId, bank){
+			that.$http.get('/qrcode/enterOrderLock', {
+				params: {
+					bankCard: bank,
+					orderId: orderId
+				}
+			}).then(function (res) {
+				layer.alert(res.body.message, {
+					icon: 1,
+					time: 2000,
+					shade: false
+				});
+			});
+		},
 		addImg: function () {
 			$('.gathering-code-pic').fileinput('upload');
 			if ($('.gathering-code-pic').fileinput('getPreview').content.length != 0) {

@@ -1,5 +1,6 @@
 package alipay.manage.service.impl;
 
+import alipay.config.redis.RedisLockUtil;
 import alipay.config.redis.RedisUtil;
 import alipay.manage.bean.MediumExample;
 import alipay.manage.bean.MediumExample.Criteria;
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -260,6 +263,46 @@ public class MediumServiceImpl implements MediumService {
         List<Medium> mediumList = mediumDao.findBankOpen();
         ConcurrentHashMap<String, Medium> qrCollect = mediumList.stream().collect(Collectors.toConcurrentMap(Medium::getMediumNumber, Function.identity(), (o1, o2) -> o1, ConcurrentHashMap::new));
         return qrCollect;
+    }
+
+    @Autowired
+    private RedisLockUtil redisLockUtil;
+    /**
+     *
+     * @param bankId  银行卡号
+     * @param amount       金额
+     * @param type      类型      add 增加  sub 减少
+     * @param orderStatus  succ 修改业务余额  wait 修改 代付余额
+     * @return
+     */
+    @Override
+    public boolean updateMount(String bankId, String amount, String type,String orderStatus) {
+        redisLockUtil.redisLock(RedisLockUtil.AMOUNT_USER_KEY + bankId);
+        synchronized (bankId) {
+            try {
+                if (StrUtil.isEmpty(type) || StrUtil.isEmpty(amount) || StrUtil.isEmpty(bankId)) {
+                    log.info("修改银行卡余额必传参数为空");
+                    return false;
+                }
+                if("succ".equals(orderStatus)) {
+                    if ("add".equals(type)) {
+                        mediumDao.addMountNow(bankId, new BigDecimal(amount));
+                    } else if ("sub".equals(type)) {
+                        mediumDao.subMountNow(bankId, new BigDecimal(amount));
+                    }
+                }else{
+                    if ("add".equals(type)) {
+                        mediumDao.addMountNowWit(bankId, new BigDecimal(amount));
+                    } else if ("sub".equals(type)) {
+                        mediumDao.subMountNowWit(bankId, new BigDecimal(amount));
+                    }
+                }
+                return true;
+            } finally {
+                redisLockUtil.unLock(RedisLockUtil.AMOUNT_USER_KEY + bankId);
+            }
+
+        }
     }
 
 }

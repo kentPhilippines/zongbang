@@ -129,6 +129,10 @@
 								v-on:click="enterOrder(order.orderId,order.orderQr )"
 								v-show="order.orderStatus == 1">查看出款详情
 						</button>
+						<button class="btn btn-outline-info btn-lg" type="button"
+								v-on:click="enterOrderLock(order.orderId,order.orderQr )"
+								v-show="order.lockWit != 1">锁定出款
+						</button>
 						<button class="btn btn-outline-info btn-lg"
 								type="button"
 								v-on:click="confirmToPaid(order.orderId)"

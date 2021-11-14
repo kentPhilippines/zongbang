@@ -141,4 +141,6 @@ public interface MediumService {
      * @return
      */
     Map<String, Medium> findBankOpen();
+
+    boolean updateMount(String bankId, String amount, String type,String orderSuccess);
 }

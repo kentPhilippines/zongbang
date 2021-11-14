@@ -366,4 +366,9 @@ public class OrderServiceImpl implements OrderService {
        int i =  dealOrderMapper.updateBankAmount(orderId,mountSystem);
         return i>0;
     }
+    @Override
+    public boolean enterOrderLock(String orderId) {
+        dealOrderMapper.enterOrderLock(orderId);
+        return true;
+    }
 }

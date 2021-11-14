@@ -14,5 +14,13 @@ public class rsa {
     public static void main(String[] args) {
 
 
+
+
+
+       String bankName =  "中国银行";
+       String b =  "平安银行";
+
+
+
     }
 }

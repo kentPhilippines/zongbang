@@ -3,6 +3,7 @@ package alipay.manage.service.impl;
 import alipay.manage.bean.DealOrder;
 import alipay.manage.bean.UserFund;
 import alipay.manage.mapper.DealOrderMapper;
+import alipay.manage.mapper.MediumMapper;
 import alipay.manage.mapper.UserFundMapper;
 import alipay.manage.service.UserFundService;
 import cn.hutool.log.Log;
@@ -23,7 +24,9 @@ public class UserFundServiceImpl implements UserFundService {
 	public static final Log log = LogFactory.get();
 
 	@Resource
-	UserFundMapper userFundDao;
+	private UserFundMapper userFundDao;
+	@Resource
+	private MediumMapper mediumDao;
 
 	@Resource
 	DealOrderMapper orderMapper;
@@ -39,6 +42,7 @@ public class UserFundServiceImpl implements UserFundService {
 
 	@Override
 	public List<UserFund> findBankUserId(BigDecimal amount) {
+
 		List<UserFund>  fundList  = new ArrayList<>();
 		List<UserFund> bankUser = userFundDao.findBankUserId(amount);
 		List<DealOrder> orderList = orderMapper.findWaitWitUser();
@@ -67,6 +71,30 @@ public class UserFundServiceImpl implements UserFundService {
 			log.error("选择出款卡商异常",e.getMessage(),e);
 			fundList = bankUser;
 		}
+
+	//	List<Medium> bankByAmountWit = mediumDao.findBankByAmountWit(amount);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		return fundList;
 	}
 

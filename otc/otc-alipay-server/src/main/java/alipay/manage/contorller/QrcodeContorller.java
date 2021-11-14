@@ -9,10 +9,13 @@ import alipay.manage.service.OrderService;
 import alipay.manage.service.WithdrawService;
 import alipay.manage.util.QueueUtil;
 import alipay.manage.util.SessionUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +37,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/qrcode")
 public class QrcodeContorller {
+    Logger log= LoggerFactory.getLogger(QrcodeContorller.class);
     private static final String MARS = "SHENFU";
     private static final String MARK = ":";
     @Autowired
@@ -173,6 +177,14 @@ public class QrcodeContorller {
             account = split[0];//开户行
             mediumPhone = split[3];
         }
+        try {
+            ThreadUtil.execute(()->{
+                log.info("出款卡锁定，当前订单号："+orderId);
+                orderServiceImpl.enterOrderLock( orderId);
+            });
+        }catch (Throwable e ){
+            log.info("出款卡锁定异常");
+        }
 
         Map cardmap = new HashMap();
         cardmap.put("bank_name", wit.getBankName());
@@ -183,6 +195,17 @@ public class QrcodeContorller {
         cardmap.put("oid_partner", orderId);
         redis.hmset(MARS + orderId, cardmap, 6000);
         return Result.buildSuccessResult(PayApiConstant.Notfiy.OTHER_URL + "/pay?orderId=" + orderId + "&type=203");
+    }
+    @GetMapping("/enterOrderLock")
+    @ResponseBody
+    public Result enterOrderLock(HttpServletRequest request, String bankCard, String orderId) {
+        UserInfo user = sessionUtil.getUser(request);
+        if (ObjectUtil.isNull(user)) {
+            return Result.buildFailResult("用户未登录");
+        }
+        log.info("当前用户锁定出款："+user.getUserId()+" 订单号："+orderId);
+        boolean b = orderServiceImpl.enterOrderLock( orderId);
+        return Result.buildFailMessage("锁定成功");
     }
 
 

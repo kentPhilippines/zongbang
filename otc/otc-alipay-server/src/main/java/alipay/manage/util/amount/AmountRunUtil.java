@@ -766,11 +766,11 @@ public class AmountRunUtil {
 
 
     public Result addBackBank(String username,String orderId,BigDecimal amount,String ip) {
-        Result add = add(BANK_CARD_BACK, username, orderId, amount, ip, "当前卡商佣金退回，当前退回佣金为：" + amount, RUNTYPE_ARTIFICIAL);
+        Result add = add(BANK_CARD_BACK, username, orderId, amount, ip, "卡商代付回滚，资金退回：" + amount, RUNTYPE_ARTIFICIAL);
         return add;
     }
     public Result deleteBackBank(String username,String orderId,BigDecimal amount,String ip) {
-        Result add = delete(BANK_CARD_BACK, username, orderId, amount, ip, "当前卡商佣金退回，当前退回佣金为：" + amount, RUNTYPE_ARTIFICIAL);
+        Result add = delete(BANK_CARD_BACK, username, orderId, amount, ip, "卡商代付回滚，资金退回：" + amount, RUNTYPE_ARTIFICIAL);
         return add;
     }
 

@@ -60,8 +60,16 @@ public interface MediumMapper {
      * @param amount
      * @return
      */
-    @Select("select * from alipay_medium where status = 1  and  isDeal = '2'   and black = 1   and  amount + mountSystem  < mountLimit   ")
+    @Select("select * from alipay_medium where status = 1  and  isDeal = '2'   and black = 1  and error  = 0  and  #{amount}  + mountSystem  < mountLimit   ")
     List<Medium> findBankByAmount(@Param("amount") BigDecimal amount);
+    /**
+     * 无权重查询当前在线接单媒介
+     *
+     * @param amount
+     * @return
+     */
+    @Select("select * from alipay_medium where status = 1  and  isDeal = '2'   and black = 1 and error  = 0  and  #{amount}  <= witAmount    ")
+    List<Medium> findBankByAmountWit(@Param("amount") BigDecimal amount);
 
 
     /**
@@ -83,7 +91,7 @@ public interface MediumMapper {
     @Update("update alipay_medium set mountSystem = mountSystem - #{dealAmount} where mediumNumber = #{bankAccount} ")
     void subMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount);
 
-    @Update("update alipay_medium set    mountSystem = mountSystem + #{dealAmount}   where mediumNumber = #{bankAccount} ")
+    @Update("update alipay_medium set    mountSystem = mountSystem + #{dealAmount} , witAmount = witAmount + #{amount}   where mediumNumber = #{bankAccount} ")
     void addMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount);
 
     @Select("select * from alipay_medium where   mediumNumber = #{cardInfo}  and  qrcodeId = #{userId}")
@@ -100,4 +108,12 @@ public interface MediumMapper {
      */
     @Select("select * from alipay_medium where  isDeal = 2 and status = 1 ")
     List<Medium> findBankOpen();
+    @Update("update alipay_medium set mountSystem = mountSystem - #{amount} where id = #{id} ")
+    void deleteMed(@Param("id")Integer id, @Param("amount")BigDecimal amount);
+
+
+    @Update("update alipay_medium set witAmount = witAmount + #{amount} where mediumNumber = #{bankId} ")
+    void addMountNowWit(@Param("bankId")String bankId, @Param("amount")BigDecimal amount);
+    @Update("update alipay_medium set witAmount = witAmount - #{amount} where mediumNumber = #{bankId} ")
+    void subMountNowWit(@Param("bankId")String bankId, @Param("amount")BigDecimal amount);
 }

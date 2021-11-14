@@ -1,6 +1,7 @@
 package alipay.config.task;
 
 import alipay.manage.api.channel.deal.jiabao.RSAUtil;
+import alipay.manage.service.OrderService;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
@@ -9,16 +10,25 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import otc.util.RSAUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class BankOpen {
     private static final Log log = LogFactory.get();
     public static List<String> BANK_LIST = new ArrayList();
+
+
+
+    @Autowired private OrderService orderServiceImpl;
+
+
+
 
     static {
       /*  BANK_LIST.add("6217001850015770473"); //fang777
@@ -65,6 +75,20 @@ public class BankOpen {
                 heart = null;
             });
         }
+    }
+
+    public void updateBnakAmount() {
+    //  Map<String,String> map =   orderServiceImpl.findBankAmount();
+
+
+
+
+
+
+
+
+
+
     }
 }
 

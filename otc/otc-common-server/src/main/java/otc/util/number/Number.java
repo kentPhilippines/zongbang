@@ -103,7 +103,7 @@ public class Number {
     }
 
     public static String getWitOrder() {
-        return GenerateOrderNo.Generate("W");
+        return GenerateOrderNo.Generate("ZBW");
     }
 
     public static int nextInt(final int startInclusive, final int endExclusive) {

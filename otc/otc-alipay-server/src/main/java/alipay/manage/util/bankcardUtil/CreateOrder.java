@@ -4,6 +4,7 @@ package alipay.manage.util.bankcardUtil;
 import alipay.config.redis.RedisUtil;
 import alipay.manage.bean.*;
 import alipay.manage.mapper.ChannelFeeMapper;
+import alipay.manage.mapper.MediumMapper;
 import alipay.manage.service.*;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.thread.ThreadUtil;
@@ -88,22 +89,25 @@ public class CreateOrder {
         UserInfo accountInfo = userInfoServiceImpl.findUserInfoByUserId(wit.getUserId());//这里有为商户配置的 供应队列属性
         UserRate rateFee = userRateServiceImpl.findUserRateWitByUserIdApp(accountInfo.getUserId());
         userFeeId = rateFee.getId();
-
+        String witprople = "";
         //出款选卡算法
-        String bankInfoUser = getBankInfo(userId, accountInfo.getQueueList(), bc,wit.getAmount());//出款人
-        if (StrUtil.isEmpty(bankInfoUser)) {
-            bankInfoUser =   "zhongbang-bank";
+        Medium bankinfo = getBankInfo(userId, accountInfo.getQueueList(), bc,wit.getAmount());//出款人
+        if (null == bankinfo) {
+            witprople =   "zhongbang-bank";
+            bankInfo =  "";
+        }else{
+            witprople = bankinfo.getQrcodeId();
+            bankInfo =   bankinfo.getMediumHolder() + ":" + bankinfo.getAccount() + ":" + bankinfo.getMediumNumber();
         }
-        if(StrUtil.isEmpty(bankInfoUser)){
+        if(StrUtil.isEmpty(witprople)){
             return Result.buildFailMessage("暂无出款渠道");
         }
-        channnelId = bankInfoUser;
+        channnelId = witprople;
         UserRate channnelFee = userRateServiceImpl.findUserRateWitByUserIdApp(channnelId);
         if (null == channnelFee) {
             return Result.buildFailMessage("暂无出款渠道");
         }
         channelFeeId = String.valueOf(channnelFee.getId());
-        bankInfo = "";// 出款银行卡信息暂时为空， 该银行卡信息由 卡商去选择出款
         Result result = addOrder(bc, wit.getOrderId(), wit.getAppOrderId(), wit.getUserId(),
                 wit.getAmount().toString(), channnelId, channelFeeId,
                 flag, bankInfo, userFeeId, Boolean.FALSE, wit.getRetain2(), wit.getNotify(), null,null);
@@ -366,8 +370,11 @@ public class CreateOrder {
         }
         return Result.buildFailMessage("失败未知");
     }
-
-    String getBankInfo(String userId, String weight, String orderId, BigDecimal amount) {
+    @Resource
+    private MediumMapper mediumDao;
+    @Autowired
+    private MediumService mediumService;
+    Medium getBankInfo(String userId, String weight, String orderId, BigDecimal amount) {
         /**
          * #################出款选卡逻辑################
          * 如果指定出款人出款则直接选中出款人直接出款，如果未指定出款人，则按照以下逻辑选择出款
@@ -375,45 +382,41 @@ public class CreateOrder {
          * 1，当日交易额度最多        【确保有钱】
          * 2，实际金额最多           【减少冻结概率】
          */
-        if (StrUtil.isNotEmpty(userId)) {
-            return userId;
-        }
         List<UserFund> userFundList = null;
         //    if (StrUtil.isEmpty(weight)) {
-        userFundList = userFundService.findBankUserId(amount);
-        //  } else {
-        //    String[] split = weight.split(",");
-        //      userFundList = userInfoServiceImpl.findUserByWeight(split);
-        //    }
-        //入款金额 - 出款金额   差额最小  且根据入款金额排序
-        Collections.sort(userFundList, new Comparator<UserFund>() {
-            @Override
-            public int compare(UserFund o1, UserFund o2) {
-                return o1.getTodayDealAmount().subtract(o1.getTodayOtherWitAmount()).compareTo(o2.getTodayDealAmount().subtract(o2.getTodayOtherWitAmount())) * -1;
+
+
+        List<Medium> bankByAmountWit = mediumDao.findBankByAmountWit(amount);
+       // userFundList = userFundService.findBankUserId(amount);
+
+        for(Medium med : bankByAmountWit) {
+            String qrcodeId = med.getQrcodeId();
+            if (StrUtil.isEmpty(qrcodeId)) {
+                return null;
             }
-        });
-        if (CollUtil.isEmpty(userFundList)) {
-            return null;
+            queue.saveWit(qrcodeId, orderId);
+            returnMed(med,amount);
+            return med;
         }
-        for (UserFund fund : userFundList) {//每人三单
-            boolean amountWit = queue.findAmountWit(fund.getUserId());
-            if (!amountWit) {
-                queue.saveWit(fund.getUserId(), orderId);
-                return fund.getUserId();
+        for (Medium med : bankByAmountWit) {//如果选不到 全部删除
+            queue.openWit(med.getQrcodeId());
+        }
+        for(Medium med : bankByAmountWit) {
+            String qrcodeId = med.getQrcodeId();
+            if (StrUtil.isEmpty(qrcodeId)) {
+                return null;
             }
+            queue.saveWit(qrcodeId, orderId);
+            returnMed(med,amount);
+            return med;
         }
-        for (UserFund fund : userFundList) {//如果选不到 全部删除
-            queue.openWit(fund.getUserId());
-        }
-        for (UserFund fund : userFundList) {//重新每人三单
-            boolean amountWit = queue.findAmountWit(fund.getUserId());
-            if (!amountWit) {
-                queue.saveWit(fund.getUserId(), orderId);
-                return fund.getUserId();
-            }
-        }
-        return CollUtil.getFirst(userFundList).getUserId();
+        return null;
     }
+
+    private void returnMed(Medium med, BigDecimal amount) {
+        mediumService.updateMount(med.getMediumNumber(),amount.toString(),"sub","wait");
+    }
+
     UserInfo findAgent(String userId) {
         UserInfo userAgent = userInfoServiceImpl.findUserAgent(userId);
         if (StrUtil.isNotEmpty(userAgent.getAgent())) {

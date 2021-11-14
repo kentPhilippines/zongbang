@@ -79,7 +79,6 @@ public class OrderTask {
 					runOrderList1 = RunOrderServiceimpl.findAssOrder(order.getAssociatedId());
 				}
 				if (CollUtil.isNotEmpty(runOrderList) || CollUtil.isNotEmpty(runOrderList1)) {
-
 					dealOrderDao.updateSuccessAndAmount(order.getOrderId());
 					continue;
 				}

@@ -252,17 +252,17 @@ public class OrderUtil {
                                 log.info("[当前更新银行卡：" + orderQr + "]");
                                 String[] split = orderQr.split(":");
                                   bankAccount = split[2];
-                                mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "add");
+                                mediumServiceImpl.updateMount(bankAccount, order.getDealAmount().toString(), "add","succ");
                         }
                     }
                     log.info("若为代付订，则置商户代付订单为成功，当前订单号：" + orderSu.getOrderId() + "，当前订单类型：" + orderSu.getOrderType() + "");
                     if (Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(orderSu.getOrderType().toString())) {
-                         //如果是入款订单,当前银行卡的系统业务余额会增加
+                         //如果是入款订单,当前银行卡的系统业务余额会增加       这里对只对业务余额进行修改
                             log.info("【更新银行卡余额  出款减少】");
                             String orderQr = order.getOrderQr();
                             String[] split = orderQr.split(":");
                               bankAccount = split[2];
-                            mediumServiceImpl.updateMountNow(bankAccount, order.getDealAmount(), "sub");
+                            mediumServiceImpl.updateMount(bankAccount, order.getDealAmount().toString(), "sub","succ");
                         settlementOrderApp(orderSu);//如果是代付订单，商户会瞬间成功
                     }
                     log.info("修改订单银行卡余额表示标识，当前订单号：" + orderSu.getOrderId() + "，当前订单类型：" + orderSu.getOrderType() + "");
@@ -377,6 +377,17 @@ public class OrderUtil {
             return Result.buildFailMessage("当前订单不支持修改");
         }
         boolean updateOrderStatus = orderServiceImpl.updateOrderStatus(orderId, OrderDealStatus.失败.getIndex().toString(), mag);
+        if(Common.Order.ORDER_TYPE_BANKCARD_W.toString().equals(order.getOrderType().toString())){
+           ThreadUtil.execute(()->{
+               DealOrder order1 = orderServiceImpl.findOrderByOrderId(order.getOrderId());
+                         //如果是入款订单,当前银行卡的系统业务余额会增加    手动失败 驳回的时候只对  代付余额进行修改
+                            log.info("【 手动失败 更新银行卡余额  出款减少】");
+                            String orderQr = order.getOrderQr();
+                            String[] split = orderQr.split(":");
+                            String bankAccount   = split[2];
+               boolean flag = mediumServiceImpl.updateMount(bankAccount,order1.getDealAmount().toString(), "add","wait");
+           });
+           };
         if (!updateOrderStatus) {
             return Result.buildFailMessage("订单修改失败，请重新发起成功");
         } else {
@@ -1130,8 +1141,7 @@ public class OrderUtil {
      * @return
      */
     private static final String AMOUNT_TYPE_R = "0";//对于当前账户来说是   收入
-    @Transactional
-    public Result backOrder(DealOrder order,  String clientIP) {
+     public Result backOrder(DealOrder order,  String clientIP) {
         log.info("【进入卡商代付订单回滚方法，当前卡商代付订单号："+order.getOrderId()+"】");
         /**
          * 1，先查看是否有结算流水

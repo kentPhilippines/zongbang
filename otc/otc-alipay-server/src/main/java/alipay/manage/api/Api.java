@@ -83,6 +83,34 @@ public class Api {
 
     /**
      * <p>后台调用重新通知的方法</p>
+     *  这里只对代付余额 进行修改
+     * @param request
+     * @return
+     */
+    @GetMapping(PayApiConstant.Alipay.ORDER_API + PayApiConstant.Alipay.BANK_AMOUNT_CHICK)
+    public Result bank(HttpServletRequest request) {
+        log.info("【接收到后台确认代付出款的方法调用，：" + request.getParameter("orderId") + " 】");
+        String orderId = request.getParameter("orderId");
+        String apply = request.getParameter("apply");
+        String bankId = request.getParameter("bankId");
+        String amount = request.getParameter("amount");
+        String type = request.getParameter("type");
+        if (StrUtil.isBlank(orderId)) {
+            return Result.buildFailMessage("订单号为空");
+        }
+        if (StrUtil.isBlank(apply)||StrUtil.isBlank(bankId)||StrUtil.isBlank(amount)||StrUtil.isBlank(type)) {
+            return Result.buildFailMessage("必传参数为空");
+        }
+        logUtil.addLog(request, "后台人员切代付订单出款：" + orderId +"，金额："+amount, apply);
+        boolean flag = mediumServiceImpl.updateMount(bankId,amount,type,"wait");
+        if(flag){
+             return Result.buildSuccessMessage(" 银行卡余额修改成功");
+         }
+        return Result.buildFailMessage("银行卡余额修改失败");
+
+
+    }    /**
+     * <p>后台调用重新通知的方法</p>
      *
      * @param request
      * @return
@@ -230,8 +258,9 @@ public class Api {
                     dealOrderDao.updatePayInfo(witOrderId, originText.toString());
                     redisUtil.deleteKey("WIT:" + witNotify);
                 }
+                return Result.buildSuccessResult("代付出款确认成功", witOrderId);
             }
-            return Result.buildSuccessResult("代付出款确认成功", o);
+            return Result.buildSuccessResult("代付出款确认成功");
         } else {
             String orderId = qrUtil.findOrderBy(amount, phone, bankId,counterpartyAccountName);
             if (StrUtil.isBlank(orderId)) {
@@ -252,8 +281,8 @@ public class Api {
                     notifyUtil.sendMsg(order.getOrderId());
                 }
             });
+            return Result.buildSuccessResult(order.getOrderId());
         }
-        return Result.buildSuccess();
     }
 
     @PostMapping(PayApiConstant.Alipay.MEDIUM_API + PayApiConstant.Alipay.FIND_MEDIUM_IS_DEAL)

@@ -187,4 +187,6 @@ public interface OrderService {
 	 * @return
 	 */
 	boolean updateBankAmount(String bankAccount, String orderId);
+
+	boolean enterOrderLock(String orderId);
 }

@@ -250,6 +250,8 @@ public class BankUtil {
 		ConcurrentHashMap<String, Medium> qrCollect = qcList.stream().collect(Collectors.toConcurrentMap(Medium::getMediumNumber, Function.identity(), (o1, o2) -> o1, ConcurrentHashMap::new));
 		ConcurrentHashMap<String, UserFund> usercollect = userList.stream().collect(Collectors.toConcurrentMap(UserFund::getUserId, Function.identity(), (o1, o2) -> o1, ConcurrentHashMap::new));
 		for (Object obj : queue) {
+			String name = payInfo;
+
 			String alipayAccount = obj.toString();
 			if (StrUtil.isBlank(alipayAccount)) {
 				continue;
@@ -273,9 +275,9 @@ public class BankUtil {
 			riskUtil.updataUserAmountRedis(qrcodeUser, flag);
 			log.info("银行卡："+qr.getAccount() +" 当前付款人：" + payInfo + " 当前银行卡号 ： "+qr.getMediumNumber().trim()+ "当前手机号："+qr.getMediumPhone().trim());
 			if (openPayment(qr.getAccount())) {//是否开启姓名验证
-				payInfo = "";
+				name = "";
 			}
-			String notify = qr.getMediumNumber().trim() + qr.getMediumPhone().trim() + dealAmount.toString().trim() + payInfo;
+			String notify = qr.getMediumNumber().trim() + qr.getMediumPhone().trim() + dealAmount.toString().trim() + name;
 			log.info("【核心回调控制数据：" + notify + "】");
 			Object object2 = redisUtil.get(notify);//回调数据
 			//	Object object = redisUtil.get(qr.getPhone());
@@ -341,8 +343,6 @@ public class BankUtil {
 	boolean openPayment(String bankName){
 		if (bankName.contains("中国银行")
 				|| bankName.contains("平安")
-				|| bankName.contains("广西农村")
-				|| bankName.contains("广西农信")
 				|| bankName.contains("长沙银行")
 				|| bankName.contains("广东农信")
 				|| bankName.contains("河南农信")

@@ -31,7 +31,7 @@ public interface UserFundMapper {
 
     @Select("select * from alipay_user_fund auf " +
             " left join alipay_user_info aui on auf.userId = aui.userId " +
-            " where aui.userType = 2 and  ( auf.accountBalance + auf.quota  - auf.sumProfit > #{amount}  ) " +
+            " where aui.userType = 2 and  ( auf.accountBalance + auf.quota  - auf.sumProfit - auf.freezeBalance > #{amount}  ) " +
             " and aui.switchs = 1 and aui.receiveOrderState = 1 ")
     List<UserFund> findUserByAmount(@Param("amount") BigDecimal amount);
 
@@ -49,7 +49,7 @@ public interface UserFundMapper {
             "values (#{orderId}, #{userId},#{amountType},#{accname},#{orderStatus},#{amount},#{amount},#{dealDescribe} )")
     int insetAmountEntity(Amount amount);
 
-    @Select("select * from  alipay_user_fund WHERE    userId IN ( " +
+    @Select("select * from  alipay_user_fund WHERE   userId IN ( " +
             "			select childrenName from alipay_correlation WHERE parentName IN ( " +
             "			select userId from alipay_user_info WHERE userType  = 2 AND isAgent = '1' AND agent IS NULL AND accountBalance > #{amount}  ))")
     List<UserFund> findUserByAmountAgent(@Param("amount") BigDecimal amount);
