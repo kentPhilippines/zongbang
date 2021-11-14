@@ -1,6 +1,7 @@
 package test.number;
 
 
+import alipay.manage.api.channel.util.shenfu.PayUtil;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.asymmetric.KeyType;
@@ -17,24 +18,9 @@ public class rsa {
 
 
     public static void main(String[] args) {
+        String s = PayUtil.md5("11");
 
-
-        List<Double> l = new ArrayList<>();
-        l.add(8.0);
-        l.add(9.0);
-        l.add(10.0);
-
-
-        Collections.sort(l, new Comparator<Double>() {
-            @Override
-            public int compare(Double o1, Double o2) {
-                return  o1 < o2 ? -1 : 1 ;
-            }
-        });
-
-        for (Double a : l){
-            System.out.println(a);
-        }
+        System.out.println(s);
 
     }
 }

@@ -1140,7 +1140,8 @@ public class OrderUtil {
      * @param clientIP
      * @return
      */
-    private static final String AMOUNT_TYPE_R = "0";//对于当前账户来说是   收入
+
+     private static final String AMOUNT_TYPE_R = "0";//对于当前账户来说是   收入
      public Result backOrder(DealOrder order,  String clientIP) {
         log.info("【进入卡商代付订单回滚方法，当前卡商代付订单号："+order.getOrderId()+"】");
         /**
@@ -1182,7 +1183,11 @@ public class OrderUtil {
                 }
             }
         }
-      dealOrderAppDao.updateOrderSu(order.getOrderId(), Common.Order.DealOrderApp.ORDER_STATUS_ER);
+         orderServiceImpl.updateOrderStatus(order.getOrderId(), Common.Order.DealOrderApp.ORDER_STATUS_ER,"代付回滚");
+         String orderQr = order.getOrderQr();
+         String[] split = orderQr.split(":");
+         String bankno =   split[2];
+         mediumServiceImpl.updateMount(bankno,order.getDealAmount().toString(),"add","succ")
         return Result.buildSuccessMessage("渠道退款成功");
     }
 }
