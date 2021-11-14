@@ -83,7 +83,7 @@ public class Queue {
         }
 
     	Set<Object> zRange = null;
-    	for(String code : codes) {
+    	for(String code : codes) {//这里需要解决 多个卡池 顺序配排队的问题
             Set<Object> zRange2 = redisUtil.zRange(REDISKEY_QUEUE + code, 0, -1);
             if (CollUtil.isEmpty(zRange)) {
                 zRange = zRange2;

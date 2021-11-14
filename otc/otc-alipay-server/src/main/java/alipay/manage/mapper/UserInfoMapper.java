@@ -160,7 +160,6 @@ public interface UserInfoMapper {
      *
      * @return
      */
-    @Cacheable(cacheNames = {USER_LONG}, unless = "#result == null")
     @Select("select id, userId, userName,   userType, switchs, userNode," +
             "    agent, isAgent ,queueList " +
             "  from alipay_user_info where userId = #{userId}")
