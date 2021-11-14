@@ -1183,11 +1183,13 @@ public class OrderUtil {
                 }
             }
         }
-         orderServiceImpl.updateOrderStatus(order.getOrderId(), Common.Order.DealOrderApp.ORDER_STATUS_ER,"代付回滚");
-         String orderQr = order.getOrderQr();
-         String[] split = orderQr.split(":");
-         String bankno =   split[2];
-         mediumServiceImpl.updateMount(bankno,order.getDealAmount().toString(),"add","succ")
+        ThreadUtil.execute(()->{
+            orderServiceImpl.updateOrderStatus(order.getOrderId(), Common.Order.DealOrderApp.ORDER_STATUS_ER,"代付回滚");
+            String orderQr = order.getOrderQr();
+            String[] split = orderQr.split(":");
+            String bankno =   split[2];
+            mediumServiceImpl.updateMount(bankno,order.getDealAmount().toString(),"add","succ");
+        });
         return Result.buildSuccessMessage("渠道退款成功");
     }
 }
