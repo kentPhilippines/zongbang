@@ -97,7 +97,7 @@ public class CreateOrder {
             bankInfo =  "";
         }else{
             witprople = bankinfo.getQrcodeId();
-            bankInfo =   bankinfo.getMediumHolder() + ":" + bankinfo.getAccount() + ":" + bankinfo.getMediumNumber();
+            bankInfo = bankinfo.getAccount() + ":" +   bankinfo.getMediumHolder() + ":" + bankinfo.getMediumNumber();
         }
         if(StrUtil.isEmpty(witprople)){
             return Result.buildFailMessage("暂无出款渠道");
@@ -410,6 +410,7 @@ public class CreateOrder {
             returnMed(med,amount);
             return med;
         }
+
         return null;
     }
 

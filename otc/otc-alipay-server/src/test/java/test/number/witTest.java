@@ -188,9 +188,9 @@ public class witTest {
 */
 
 
-        String userid = "jinxing";
-        String key = "51C2A8E4BBDB488C9E901F163A195BBC";
-        String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJA3kkGVMP3lTsWR6PtBSWFOtP+RmEEv4yWS3E4rIKG07rzX2f7sgQnm2CGld25s4lL9bWT8Hw9ulTpi1vNACHLXko0O/YyNuIfeUvfaXirBgWlErDlQ+hOFdhLle+vdITu+5JW08i+G9Z1gZkcdtk/UeomBuY0FNaLxx/dRCNyQIDAQAB";
+        String userid = "yajin";
+        String key = "DC64F340640A4BBF927B2F8F3C741C56";
+        String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCDoWgQptipqxZK8XXJFiYwDP6uypcK+qGDtPUuGpvWRUleSbY5s7OV/+f4ggENgei41XFAoY9Z1wZZeZg0TH5kFwNKCJGZ9cQ2qhjeZxNswUp0rvTTMbB+f4lc5FQp3PAxf2ljnXOr6RBT9lV0wHQasuLvQw0Fp8Rhff6dlVPpgQIDAQAB";
         long amount = RandomUtil.randomLong(3000, 5000);
         Deal deal = new Deal();
         deal.setAmount(amount + "");//金额

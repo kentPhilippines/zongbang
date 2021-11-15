@@ -5,7 +5,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-import org.springframework.cache.annotation.Cacheable;
 import otc.bean.alipay.Medium;
 
 import java.math.BigDecimal;
@@ -84,15 +83,15 @@ public interface MediumMapper {
 
     /**
      * 代付一按行卡减款
-     *
-     * @param bankAccount
+     *  @param bankAccount
      * @param dealAmount
+     * @param version
      */
-    @Update("update alipay_medium set mountSystem = mountSystem - #{dealAmount} where mediumNumber = #{bankAccount} ")
-    void subMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount);
+    @Update("update alipay_medium set `version` =  `version` + 1 ,  , mountSystem = mountSystem - #{dealAmount} where mediumNumber = #{bankAccount}  and `version`  = #{version} ")
+    int subMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount,@Param("version")  Integer version);
 
-    @Update("update alipay_medium set    mountSystem = mountSystem + #{dealAmount} , witAmount = witAmount + #{amount}   where mediumNumber = #{bankAccount} ")
-    void addMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount);
+    @Update("update alipay_medium set `version` =  `version` + 1 ,  ,  mountSystem = mountSystem + #{dealAmount} , witAmount = witAmount + #{dealAmount}   where mediumNumber = #{bankAccount}  and `version`  = #{version}")
+    int addMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount, @Param("version") Integer version);
 
     @Select("select * from alipay_medium where   mediumNumber = #{cardInfo}  and  qrcodeId = #{userId}")
     Medium findMediumByBankAndId(@Param("cardInfo") String cardInfo, @Param("userId") String userId);
@@ -112,8 +111,8 @@ public interface MediumMapper {
     void deleteMed(@Param("id")Integer id, @Param("amount")BigDecimal amount);
 
 
-    @Update("update alipay_medium set witAmount = witAmount + #{amount} where mediumNumber = #{bankId} ")
-    void addMountNowWit(@Param("bankId")String bankId, @Param("amount")BigDecimal amount);
-    @Update("update alipay_medium set witAmount = witAmount - #{amount} where mediumNumber = #{bankId} ")
-    void subMountNowWit(@Param("bankId")String bankId, @Param("amount")BigDecimal amount);
+    @Update("update alipay_medium set `version` =  `version` + 1 , witAmount = witAmount + #{amount} where mediumNumber = #{bankId} and `version`  = #{version} ")
+    int addMountNowWit(@Param("bankId") String bankId, @Param("amount") BigDecimal amount, @Param("version") Integer version);
+    @Update("update alipay_medium set `version` =  `version` + 1 , witAmount = witAmount - #{amount} where mediumNumber = #{bankId} and `version`  = #{version} ")
+    int subMountNowWit(@Param("bankId") String bankId, @Param("amount") BigDecimal amount, @Param("version")  Integer version);
 }

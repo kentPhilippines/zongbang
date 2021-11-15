@@ -132,50 +132,45 @@ public class QrcodeContorller {
         if (ObjectUtil.isNull(user)) {
             return Result.buildFailResult("用户未登录");
         }
-        DealOrder order = orderServiceImpl.findOrderByOrderId(orderId);
-        String mediumNumber = "";
-        String mediumHolder = "";
-        String account = "";
-        String mediumPhone = "";
-        Withdraw wit = withdrawServiceImpl.findOrderId(order.getAssociatedId());
-        if (StrUtil.isEmpty(order.getOrderQr())) {// 第一次进入绑定 银行卡， 这个地方需要 验证 银行卡是否在线
-            Medium mediumId = mediumServiceImpl.findMediumId(bankCard);
-            mediumNumber = mediumId.getMediumNumber();//卡号
-            mediumHolder = mediumId.getMediumHolder();//开户人
-            account = mediumId.getAccount();//开户行
-            mediumPhone = mediumId.getMediumPhone();
-            String bankInfo = "";
+        log.info("银行卡号："+bankCard);
+        try {
+            DealOrder order = orderServiceImpl.findOrderByOrderId(orderId);
+            String mediumNumber = "";
+            String mediumHolder = "";
+            String account = "";
+            String mediumPhone = "";
+            Withdraw wit = withdrawServiceImpl.findOrderId(order.getAssociatedId());
+            if (StrUtil.isEmpty(order.getOrderQr())) {// 第一次进入绑定 银行卡， 这个地方需要 验证 银行卡是否在线
+                if(StrUtil.isEmpty(bankCard)){
+                    bankCard =order.getOrderQr().split(MARK)[2];
+                }
 
-            String isWit = mediumNumber + mediumPhone + getAmount(order.getDealAmount());
-
-            boolean b1 = redisUtil.hasKey(isWit);
-            if (b1) {
-                return Result.buildFailMessage("当前银行卡限制出款，请等待");
+                Result result = enterWit(order, bankCard, orderId);
+                if(!result.isSuccess()){
+                    return  result;
+                }
+            } else {
+                String[] split = order.getOrderQr().split(MARK);
+                mediumNumber = split[2];//卡号
+                mediumHolder = split[1];//开户人
+                account = split[0];//开户行
+                Medium mediumByMediumNumber = mediumServiceImpl.findMediumByMediumNumber(mediumNumber);
+                Result result = enterWit(order, mediumByMediumNumber.getId().toString(), orderId);
+                if(!result.isSuccess()){
+                    return  result;
+                }
             }
-            String bankCheck = RSAUtils.md5(RedisConstant.Queue.HEARTBEAT + mediumNumber);// 验证银行 卡在线标记
-            boolean hasKey = redisUtil.hasKey(bankCheck);
-            if (hasKey) {
-                return Result.buildFailMessage("当前银行卡未绑定监控，无法出款");
-            }
-            String amount1 = getAmount(order.getDealAmount());
-            String witNotify1 = mediumNumber + mediumPhone + amount1 ; //验证当前 银行卡是否处于出款状态
-            Object o = redisUtil.get("WIT:" + witNotify1);
-            if (null != o) {
-                return Result.buildFailMessage("当前银行卡 正在出款， 请更换银行卡出款");
-            }
-            bankInfo = account + MARK + mediumHolder + MARK + mediumNumber + MARK + "电话" + MARK + mediumPhone;
-            boolean b = orderServiceImpl.updateBankInfoByOrderId(bankInfo, orderId);
-            if (b) {
-                String amount = getAmount(order.getDealAmount());
-                String witNotify = mediumNumber + mediumPhone + amount; //代付回调成功 标记
-                redisUtil.set("WIT:" + witNotify, order.getOrderId(), 600);
-            }
-        } else {
-            String[] split = order.getOrderQr().split(MARK);
-            mediumNumber = split[2];//卡号
-            mediumHolder = split[1];//开户人
-            account = split[0];//开户行
-            mediumPhone = split[3];
+            Map cardmap = new HashMap();
+            cardmap.put("bank_name", wit.getBankName());
+            cardmap.put("card_no", wit.getBankNo());
+            cardmap.put("card_user", wit.getAccname());
+            cardmap.put("money_order", order.getDealAmount());
+            cardmap.put("no_order", orderId);
+            cardmap.put("oid_partner", orderId);
+            redis.hmset(MARS + orderId, cardmap, 6000);
+        }catch (Throwable t ){
+            log.error("选卡异常",t);
+            log.info("出款信息异常，当前订单号："+orderId);
         }
         try {
             ThreadUtil.execute(()->{
@@ -185,27 +180,7 @@ public class QrcodeContorller {
         }catch (Throwable e ){
             log.info("出款卡锁定异常");
         }
-
-        Map cardmap = new HashMap();
-        cardmap.put("bank_name", wit.getBankName());
-        cardmap.put("card_no", wit.getBankNo());
-        cardmap.put("card_user", wit.getAccname());
-        cardmap.put("money_order", order.getDealAmount());
-        cardmap.put("no_order", orderId);
-        cardmap.put("oid_partner", orderId);
-        redis.hmset(MARS + orderId, cardmap, 6000);
         return Result.buildSuccessResult(PayApiConstant.Notfiy.OTHER_URL + "/pay?orderId=" + orderId + "&type=203");
-    }
-    @GetMapping("/enterOrderLock")
-    @ResponseBody
-    public Result enterOrderLock(HttpServletRequest request, String bankCard, String orderId) {
-        UserInfo user = sessionUtil.getUser(request);
-        if (ObjectUtil.isNull(user)) {
-            return Result.buildFailResult("用户未登录");
-        }
-        log.info("当前用户锁定出款："+user.getUserId()+" 订单号："+orderId);
-        boolean b = orderServiceImpl.enterOrderLock( orderId);
-        return Result.buildFailMessage("锁定成功");
     }
 
 
@@ -227,5 +202,49 @@ public class QrcodeContorller {
         }
         amount = startAmount + "." + endAmount;//得到正确的金额
         return amount;
+    }
+
+
+
+
+
+    Result  enterWit( DealOrder order ,String bankCard,String orderId){
+        String mediumNumber = "";
+        String mediumHolder = "";
+        String account = "";
+        String mediumPhone = "";
+        Medium mediumId = mediumServiceImpl.findMediumId(bankCard);
+        mediumNumber = mediumId.getMediumNumber();//卡号
+        mediumHolder = mediumId.getMediumHolder();//开户人
+        account = mediumId.getAccount();//开户行
+        mediumPhone = mediumId.getMediumPhone();
+        String bankInfo = "";
+
+        String isWit = mediumNumber + mediumPhone + getAmount(order.getDealAmount());
+
+        boolean b1 = redisUtil.hasKey(isWit);
+        if (b1) {
+            return Result.buildFailMessage("当前银行卡限制出款，请等待");
+        }
+        String bankCheck = RSAUtils.md5(RedisConstant.Queue.HEARTBEAT + mediumNumber);// 验证银行 卡在线标记
+        boolean hasKey = redisUtil.hasKey(bankCheck);
+        if (hasKey) {
+            return Result.buildFailMessage("当前银行卡未绑定监控，无法出款");
+        }
+        String amount1 = getAmount(order.getDealAmount());
+        String witNotify1 = mediumNumber + mediumPhone + amount1 ; //验证当前 银行卡是否处于出款状态
+        Object o = redisUtil.get("WIT:" + witNotify1);
+        if (null != o) {
+            return Result.buildFailMessage("当前银行卡 正在出款， 请更换银行卡出款");
+        }
+        bankInfo = account + MARK + mediumHolder + MARK + mediumNumber + MARK + "电话" + MARK + mediumPhone;
+        boolean b = orderServiceImpl.updateBankInfoByOrderId(bankInfo, orderId);
+        if (b) {
+            String amount = getAmount(order.getDealAmount());
+            String witNotify = mediumNumber + mediumPhone + amount; //代付回调成功 标记
+            redisUtil.set("WIT:" + witNotify, order.getOrderId(), 600);
+        }
+
+        return Result.buildSuccess();
     }
 }

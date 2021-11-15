@@ -1,5 +1,6 @@
 package alipay.config.task;
 
+import alipay.config.redis.RedisUtil;
 import alipay.manage.api.channel.deal.jiabao.RSAUtil;
 import alipay.manage.service.OrderService;
 import cn.hutool.core.thread.ThreadUtil;
@@ -27,52 +28,22 @@ public class BankOpen {
 
     @Autowired private OrderService orderServiceImpl;
 
-
-
+    public static final String HEARTBEAT = "HEARTBEAT_";
+    @Autowired
+    private RedisUtil redis;
 
     static {
-      /*  BANK_LIST.add("6217001850015770473"); //fang777
-        BANK_LIST.add("622908163031245319");  //fang777
-        BANK_LIST.add("6217856200019845051");  //fang777
-        BANK_LIST.add("6228480078139485672"); //fang777
-
-        BANK_LIST.add("6227002556390509919"); //fang777
-
-
-        BANK_LIST.add("6228481729215267272"); //WF8888
-        BANK_LIST.add("6221804520003024925"); //WF8888
-        BANK_LIST.add("6212253803005445297"); //WF8888
-
-
-
-
-        BANK_LIST.add("6217975200000223017"); //lfbbss
-        BANK_LIST.add("6224121212530803"); //lfbbss
-        BANK_LIST.add("6217932125081307"); //lfbbss
-        BANK_LIST.add("6217995200285745557"); //lfbbss
-        BANK_LIST.add("6230580000330781241"); //lfbbss
-        BANK_LIST.add("6230580000261425842"); //lfbbss
-
-
-
-*/
-
-
+      //  BANK_LIST.add("623059138002823992"); //fang777
+      //  BANK_LIST.add("6230361215006774818");  //fang777
     }
 
     void open() {
         for (String bank : BANK_LIST) {
             String s = RSAUtils.md5(bank);
             ThreadUtil.execute(() -> {
-                Heart heart = new Heart();
-                heart.setMD5(s);
-                JSONObject jsonObject = JSONUtil.parseObj(heart);
-                log.info("当前放开银行卡为：" + bank + "，放开参数为：" + s);
-                String body = HttpRequest.post("http://hftfc888.com:8080/http/heartbeat")
-                        .body(jsonObject)
-                        .execute().body();
-                log.info("响应参数为：" + body);
-                heart = null;
+                boolean set = redis.set(HEARTBEAT + bank, HEARTBEAT, 15);//设置心跳过期时间1分钟
+                log.info("心跳检测值：" + HEARTBEAT + bank + "结果：" + set);
+
             });
         }
     }

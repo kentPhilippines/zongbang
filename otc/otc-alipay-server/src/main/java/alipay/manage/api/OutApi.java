@@ -29,7 +29,9 @@ import java.util.stream.Collectors;
 
 @RequestMapping("/out")
 @RestController
-public class OutApi {
+public class
+
+OutApi {
     private static final Log log = LogFactory.get();
     private static final String UTF_8 = "utf-8";
     private static final String ENCODE_TYPE = "md5";
@@ -91,6 +93,7 @@ public class OutApi {
                         bank.setUserId(medium.getQrcodeId());
                         bank.setBankAccount(medium.getMediumHolder());
                         bank.setBankName(medium.getAccount());
+                        log.info("【银行卡："+value.toString()+"】");
                         list.add(bank);
                     }
                 }
@@ -110,6 +113,7 @@ public class OutApi {
                     bank.setAmount(medium.getMountNow());
                     bank.setBankAccount(medium.getMediumHolder());
                     bank.setBankName(medium.getAccount());
+                    log.info("【银行卡："+value.toString()+"】");
                     list.add(bank);
                 }
             }

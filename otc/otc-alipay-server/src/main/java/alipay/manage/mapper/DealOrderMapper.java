@@ -173,5 +173,5 @@ public interface DealOrderMapper {
     @Update("update alipay_deal_order set bankAmountNow = #{mountSystem} where orderId = #{orderId} ")
     int updateBankAmount( @Param("orderId") String orderId, @Param("mountSystem") String mountSystem);
     @Update("update alipay_deal_order set   lockWit  =  1 ,  lockWitTime = now()  where orderId = #{orderId}")
-    void enterOrderLock(String orderId);
+    void enterOrderLock( @Param("orderId") String orderId);
 }

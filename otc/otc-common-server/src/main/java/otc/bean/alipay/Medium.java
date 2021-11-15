@@ -31,8 +31,17 @@ public class Medium implements Serializable {
     private String fixation;                //当前媒介下所有金额
     private String notfiyMask;                //当前媒介下所有金额
 
-
+    private Integer version;
     private String isQueue;
+
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 
     public String getIsQueue() {
         return isQueue;
