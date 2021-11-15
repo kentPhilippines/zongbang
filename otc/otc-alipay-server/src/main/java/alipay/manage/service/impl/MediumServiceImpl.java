@@ -282,6 +282,7 @@ public class MediumServiceImpl implements MediumService {
                         return false;
                     }
                     if ("succ".equals(orderStatus)) {
+
                         if ("add".equals(type)) {
                             if(mediumDao.addMountNow(bankId, new BigDecimal(amount),bank.getVersion())>0 ){
                               return true;

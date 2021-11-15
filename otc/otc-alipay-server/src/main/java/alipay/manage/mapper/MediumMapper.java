@@ -87,10 +87,10 @@ public interface MediumMapper {
      * @param dealAmount
      * @param version
      */
-    @Update("update alipay_medium set `version` =  `version` + 1 ,  , mountSystem = mountSystem - #{dealAmount} where mediumNumber = #{bankAccount}  and `version`  = #{version} ")
+    @Update("update alipay_medium set `version` =  `version` + 1 ,   mountSystem = mountSystem - #{dealAmount} where mediumNumber = #{bankAccount}  and `version`  = #{version} ")
     int subMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount,@Param("version")  Integer version);
 
-    @Update("update alipay_medium set `version` =  `version` + 1 ,  ,  mountSystem = mountSystem + #{dealAmount} , witAmount = witAmount + #{dealAmount}   where mediumNumber = #{bankAccount}  and `version`  = #{version}")
+    @Update("update alipay_medium set `version` =  `version` + 1 ,    mountSystem = mountSystem + #{dealAmount} , witAmount = witAmount + #{dealAmount}   where mediumNumber = #{bankAccount}  and `version`  = #{version}")
     int addMountNow(@Param("bankAccount") String bankAccount, @Param("dealAmount") BigDecimal dealAmount, @Param("version") Integer version);
 
     @Select("select * from alipay_medium where   mediumNumber = #{cardInfo}  and  qrcodeId = #{userId}")

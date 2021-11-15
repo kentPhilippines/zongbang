@@ -81,12 +81,22 @@ OutApi {
                     log.info("【查询队列数据key：" + queueKey + "】");
                     LinkedHashSet<ZSetOperations.TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(queueKey, 0, -1);//linkedhashset 保证set集合查询最快
                     List<ZSetOperations.TypedTuple<Object>> collect = zRangeWithScores.stream().collect(Collectors.toList());
+                    log.info("队列数据为："+ collect.size());
                     for (ZSetOperations.TypedTuple type : collect) {
+                        log.info( type.toString());
                         Object value = type.getValue();
                         Double score = type.getScore();
+                        log.info("队列数据为 value："+ value);
+                        log.info("队列数据为 score："+ score);
+                        if( null == value){
+                            continue;
+                        }
                         BankInfo bank = new BankInfo();
                         bank.setBankId(value.toString());
                         Medium medium = medMap.get(value.toString());
+                        if(null == medium){
+                            continue;
+                        }
                         bank.setScore(score);
                         bank.setGourp(queueKey);
                         bank.setAmount(medium.getMountNow());
@@ -102,11 +112,20 @@ OutApi {
                 LinkedHashSet<ZSetOperations.TypedTuple<Object>> zRangeWithScores = redisUtil.zRangeWithScores(queueKey, 0, -1);//linkedhashset 保证set集合查询最快
                 List<ZSetOperations.TypedTuple<Object>> collect = zRangeWithScores.stream().collect(Collectors.toList());
                 for (ZSetOperations.TypedTuple type : collect) {
+                    log.info( type.toString());
                     Object value = type.getValue();
                     Double score = type.getScore();
+                    log.info("队列数据为 value："+ value);
+                    log.info("队列数据为 score："+ score);
+                    if( null == value){
+                        continue;
+                    }
                     BankInfo bank = new BankInfo();
                     bank.setBankId(value.toString());
                     Medium medium = medMap.get(value.toString());
+                    if(null == medium){
+                        continue;
+                    }
                     bank.setUserId(medium.getQrcodeId());
                     bank.setScore(score);
                     bank.setGourp(queueKey);
@@ -119,7 +138,7 @@ OutApi {
             }
             return Result.buildSuccessResult("请求成功", list);
         } catch (Exception e) {
-            e.getMessage();
+             log.error("查询在线卡池异常",e);
         }
         return Result.buildFail();
 
