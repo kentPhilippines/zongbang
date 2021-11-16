@@ -1,17 +1,4 @@
 server:
-  session:
-    store-type: redis
-    #  timeout: 3600s
-    redis:
-      flush-mode: on_save
-      namespace: spring:session
-  tomcat :
-     url-encoding : UTF-8
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://10.170.0.3:8768/eureka/
-      #defaultZone: http://127.0.0.1:8768/eureka/
   instance:
     # 是否使用ip注册
     prefer-ip-address: true

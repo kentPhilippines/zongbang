@@ -1,3 +1,16 @@
+server:
+  session:
+    store-type: redis
+    #  timeout: 3600s
+    redis:
+      flush-mode: on_save
+      namespace: spring:session
+  tomcat :
+    url-encoding : UTF-8
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://127.0.0.1:8768/eureka/
 spring:
   datasource:
     url: jdbc:mysql://rm-0iw59mny5050jpg70jo.mysql.japan.rds.aliyuncs.com:3306/zongbang-alipay?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai

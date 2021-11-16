@@ -12,6 +12,8 @@ import alipay.manage.util.LogUtil;
 import alipay.manage.util.OrderUtil;
 import alipay.manage.util.SessionUtil;
 import alipay.manage.util.SettingFile;
+import alipay.manage.util.bankcardUtil.ReWit;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
@@ -81,7 +83,7 @@ public class OrderContorller {
 
 	@GetMapping("/findMyWaitConfirmOrder")
 	@ResponseBody
-	public Result findMyWaitConfirmOrder(HttpServletRequest request, String pageNum, String pageSize, String createTime, String orderStatus) {
+	public Result findMyWaitConfirmOrder(HttpServletRequest request, String pageNum, String pageSize, String createTime, String orderStatus , String orderType) {
 		UserInfo user2 = sessionUtil.getUser(request);
 		if (ObjectUtil.isNull(user2)) {
 			log.info("当前用户未登陆");
@@ -89,7 +91,7 @@ public class OrderContorller {
 		}
 		log.info("获取当前用户----->" + user2.getUserId());
 		PageHelper.startPage(Integer.valueOf(pageNum), Integer.valueOf(pageSize));
-		List<DealOrder> listOrder = orderServiceImpl.findOrderByUser(user2.getUserId(), createTime, orderStatus);
+		List<DealOrder> listOrder = orderServiceImpl.findOrderByUser(user2.getUserId(), createTime, orderStatus,orderType);
 		PageInfo<DealOrder> pageInfo = new PageInfo<DealOrder>(listOrder);
 		PageResult<DealOrder> pageR = new PageResult<DealOrder>();
 		pageR.setContent(pageInfo.getList());
@@ -99,6 +101,9 @@ public class OrderContorller {
 		return Result.buildSuccessResult(pageR);
 	}
 
+
+	@Autowired
+	private ReWit reWit;
 	@GetMapping("/userConfirmToPaid")
 	@ResponseBody
 	@Transactional
@@ -111,6 +116,12 @@ public class OrderContorller {
 		DealOrder orderByOrderId = orderServiceImpl.findOrderByOrderId(orderId);
 		if (StrUtil.isNotEmpty(orderByOrderId.getOrderQr())) {
 			Result orderDealSu = orderUtil.orderDealSu(orderId, HttpUtil.getClientIP(request), user.getUserId());
+			if(orderDealSu.isSuccess()){
+				ThreadUtil.execute(()->{
+					//重新抓一个公共切款的出款订单
+					reWit.rewit(user.getUserId());
+				});
+			}
 			return orderDealSu;
 		} else {
 			return Result.buildFailMessage("请绑定出款卡");

@@ -1,5 +1,5 @@
 var auditOrderVM = new Vue({
-	el : '#auditOrder',
+	el : '#auditOrder-wit',
 	data : {
 		appealTypeDictItems: [],
 		showWaitConfirmOrderFlag: true,
@@ -167,6 +167,7 @@ var auditOrderVM = new Vue({
 				params: {
 					pageSize: 5,
 					orderStatus: this.orderStatus,
+					orderType: 4,
 					pageNum: that.pageNum,
 					createTime: that.receiveOrderTime
 				}

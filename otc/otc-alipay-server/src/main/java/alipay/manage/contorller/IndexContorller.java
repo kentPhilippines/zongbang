@@ -123,15 +123,21 @@ public class IndexContorller {
 	public String receiveOrder() {
 		return "receive-order";
 	}
+	@LogMonitor(required = true)
+	@GetMapping("/audit-order-re")
+	public String auditOrderRe() {
+		return "audit-order-re";
+	}
 	/**
 	 *	 审核订单
 	 * @return
 	 */
 	@LogMonitor(required = true)
-	@GetMapping("/audit-order")
-	public String auditOrder() {
-		return "audit-order";
+	@GetMapping("/audit-order-wit")
+	public String auditOrderWit() {
+		return "audit-order-wit";
 	}
+
 	/**
 	 * 	接单记录
 	 * @return

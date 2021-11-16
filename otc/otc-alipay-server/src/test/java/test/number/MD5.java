@@ -13,18 +13,18 @@ import java.util.Map;
 
 public class MD5 {
 	public static void main(String[] args) {
-      String url = "https://api.doudoupays.com/gateway/notify/deposit/zhongbang";
+      String url = "http://154.222.0.110:9083/jhongbangpay/api/pay-call-back";
 		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("apporderid", "TEST3980c2fb43a1461b");
-		map.put("tradesno", "BA20211115152205401896670");
+		map.put("apporderid", "ZF2021111619245FYkN");
+		map.put("tradesno", "BA20211116192418961600453");
 		map.put("status", 2);
-		map.put("amount", 2661.0);
-		map.put("appid", "doudoululu");
+		map.put("amount", 3000.00);
+		map.put("appid", "copo168");
 		map.put("statusdesc", "成功");
-		String sign = CheckUtils.getSign(map,  "A0803B14DB804DF2ACBFB05A34073BEF");
+		String sign = CheckUtils.getSign(map,  "2395C21EAA674CEEB29E2A1BB8A7CF3B");
 		map.put("sign", sign);
 		System.out.println(map.toString());
-		send(url,  "BA20211115152205401896670", map, true);
+		send(url,  "BA20211116192418961600453", map, true);
 
 
 
